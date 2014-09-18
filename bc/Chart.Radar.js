@@ -336,8 +336,19 @@
 
 	});
 
-
-
-
-
 }).call(this);
+
+Chart.types.Radar.extend({
+	name:'Nash',
+	initialize: function(data){
+		console.log('pooping'+data+" ..this: "+this);
+		console.log(data);
+		console.log(this);
+		this.chart.canvas.onclick = function(e) {
+			var activePoints = myRadar.getPointsAtEvent(e);
+			console.log(activePoints);
+		}
+		Chart.types.Radar.prototype.initialize.apply(this, arguments)
+	}
+});
+
