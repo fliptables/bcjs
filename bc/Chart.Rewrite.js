@@ -160,4 +160,91 @@
 		}
 	};
 
+	//Create a dictionary of chart types, to allow for extension of existing
+	//types
+	Chart.type = {};
+
+	//Global Chart helpers object for utility methods and classes
+	var helpers = Chart.helpers = {};
+
+	//-- Basic JS utility methods
+		//Each iterator
+		var each = helpers.each = function eachFn(loopable, callback, self){
+			//Slice on array, accepts an argument for which portion of the array
+			//to remove, sending in 3 below, means sending in the array of all
+			//arguments for this fn (including loopable, callback, self) and
+			//cutting off the first 3, but storing the rest in this var
+			var additionalArgs = Array.prototype.slice.call(arguments, 3);
+
+			if (loopable){
+				if (loopable.length === +loopable.length){
+					var i;
+					for (i=0; i<loopable.length; i++){
+						callback.apply(self, [loopable[i], i].concat(additionalArgs));
+					}
+				}
+				else{
+					for (var item in loopable){
+						callback.apply(self, [loopable[item], item].concat(additionalArgs));
+					}
+				}
+			}
+		};
+
+		//Clone Fn
+		var clone = helpers.clone = function cloneFn(obj){
+			var objClone = {};
+			each(obj, function cloneCallback(value, key){
+				if (obj.hasOwnProperty(key)) objClone[key] = value;
+			});
+			return objClone;
+		};
+
+		//Extend
+		var extend = helpers.extend = function extendFn(base){
+			each(Array.prototype.slice.call(arguments, 1), function extendCallback(extensionObject) {
+				each(extensionObject, function(value, key){
+					if (extensionObject.hasOwnProperty(key)) base[key] = value;
+				});
+			});
+			return base;
+		};
+
+		//Merge
+		var merge = helpers.merge = function mergeFn(base, master){
+			//Merge properties in left object over to a shallow clone of object
+			//right.
+			var args = Array.prototype.slice.call(arguments, 0);//TODO Look up this slice thing
+			args.unshift({});//TODO look this up
+			return extend.apply(null, args);
+		};
+
+		//indexOf
+		var indexOf = helpers.indexOf = function indexOfFn(arrayToSearch, item){
+			//Checking if indexOf already exists
+			if (Array.prototype.indexOf){
+				return arrayToSearch.indexOf(item)
+			}
+			else{
+				for (var i = 0; i < arrayToSearch.length; i++){
+					if (arrayToSearch[i] === item) return i;
+				}
+				return -1;
+			}
+		};
+
+		//Where TODO - understand
+		var where = helpers.where = function whereFn(collection, filterCallback){
+			var filtered = [];
+
+			helpers.each(collection, function(item){
+				if (filterCallback(item)){
+					filtered.push(item)
+				}
+			});
+
+			return filtered;
+		};
+
+
 });
