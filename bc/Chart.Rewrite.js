@@ -246,5 +246,265 @@
 			return filtered;
 		};
 
+		//findNextWhere
+		//if whatever we're looking for meets the criteria in the filterCallback,
+		//and returns true, then we've found it
+		var findNextWhere = helpers.findNextWhere = function findNextWhereFn(arrayToSearch, filterCallback, startIndex){
+			//Default to start of the array
+			if (!startIndex){
+				startIndex = -1;
+			}
+			for (var i = startIndex + 1; i < arrayToSearch.length; i++){
+				var currentItem = arrayToSearch[i];
+				if (filterCallback(currentItem)){
+					return currentItem;
+				}
+			};
+		};
+
+		//findPreviousWhere
+		var findPreviousWhere = helpers.findPreviousWhere = function findPreviousWhereFn(arrayToSearch, filterCallback, startIndex){
+			//default to end of the array
+			if (!startIndex){
+				startIndex = arrayToSearch.length;
+			}
+			for (var i = startIndex - 1; i >= 0; i--){
+				var currentItem = arrayToSearch[i];
+				if (filterCallback(currentItem)){
+					return currentItem;
+				}
+			};
+		};
+
+		//Inherits
+		//TODO - understand this sucker
+		var inherits = helpers.inherits = function inheritsFn(extensions){
+			//Basic js inheritence based on the model created in backbone
+			var parent = this;
+			var ChartElement = (extensions && extensions.hasOwnProperty("constructor")) ? extensions.constructor : function() { return parent.apply(this, arguments); };
+
+			var Surrogate = function(){ this.constructor = ChartElement;};
+			Surrogate.prototype = parent.prototype;
+			ChartElement.prototype = new Surrogate();
+
+			if (extensions) extend(ChartElement.prototype, extensions);
+
+			ChartElement.__super__ = parent.prototype;
+
+			return ChartElement;
+		};
+
+		//Noop
+		var noop = helpers.noop = function noopFn(){};
+
+		//UID
+		var uid = helpers.uid = (function(){
+			var id = 0;
+			return function(){
+				return "chart-" + id++;
+			};
+		})();
+
+		//Warn
+		//TODO understand
+		var warn = helpers.warn = function warnFn(str){
+			//Method for warning of errors
+			if (window.console && typeof window.console.warn == "function") console.warn(str);
+		};
+
+		//AMD
+		var amd = helpers.amd = (typeof define == 'function' && define.amd);
+
+		//MATH TIME
+
+			//isNumber
+			var isNumber = helpers.isNumber = function isNumberFn(n){
+				return !isNaN(parseFloat(n)) && isFinite(n);
+			};
+
+			//Max
+			var max = helpers.max = function maxFn(array){
+				return Math.max.apply( Math, array );
+			};
+
+			//Min
+			var min = helpers.min = function minFn(array){
+				return Math.min.apply( Math, array );
+			};
+
+			//Cap
+			var cap = helpers.cap = function capFn(valueToCap, maxValue, minValue){
+				if ( isNumber(maxValue) ) {
+					if ( valueToCap > maxValue ){
+						return maxValue;
+					}
+				}
+				else if( isNumber(minValue) ){
+					if ( valueToCap < minValue ){
+						return minValue;
+					}
+				}
+				return valueToCap;
+			};
+
+			//getDecimalPlaces
+			var getDecimalPlaces = helpers.getDecimalPlaces = function getDecimalPlacesFn(num){
+				if (num%1!==0 && isNumber(num)){
+					return num.toString().split('.')[1].length;
+				}
+				else {
+					return 0;
+				}
+			};
+
+			//toRadians
+			var toRadians = helpers.radians = function toRadiansFn(degrees){
+				return degrees * (Math.PI/180);
+			};
+
+			//Gets the angle from vertical upright to the point about a centre
+			var getAngleFromPoint = helpers.getAngleFromPoint = function getAngleFromPointFn(centerPoint, anglePoint){
+				var distanceFromXCenter = anglePoint.x - centerPoint.x;
+				var distanceFromYCenter = anglePoint.y - centerPoint.y;
+				var radialDistranceFromCenter = Math.sqrt( distanceFromXCenter * distanceFromXCenter + distanceFromYCenter * distanceFromYCenter);
+
+				var angle = Math.PI * 2 + Math.atan2(distanceFromYCenter, distanceFromXCenter);
+
+				//If the segment is in the top left quadrant, we need to add another
+				//rotation to the angle
+				if (distanceFromXCenter < 0 && distanceFromYCenter < 0){
+					angle += Math.PI*2;
+				}
+
+				return {
+					angle: angle,
+					distance: radialDistanceFromCenter
+				};
+			};
+
+			//AliasPixel
+			var aliasPixel = helpers.aliasPixel = function aliasPixelFn(pixelWidth){
+				return (pixelWidth % 2 === 0) ? 0 : 0.5;
+			};
+
+			//SplineCurve
+			var splineCurve = helpers.splineCurve = function splineCurveFn(FirstPoint, MiddlePoint, AfterPoint, t){
+				//Props to Rob Spencer at scaled innovation for his post on splining between points
+				//http://scaledinnovation.com/analytics/splines/aboutSplines.html
+				//TODO - read that
+
+				var d01=Math.sqrt(Math.pow(MiddlePoint.x-FirstPoint.x,2)+Math.pow(MiddlePoint.y-FirstPoint.y,2)),
+					d12=Math.sqrt(Math.pow(AfterPoint.x-MiddlePoint.x,2)+Math.pow(AfterPoint.y-MiddlePoint.y,2)),
+					fa=t*d01/(d01+d12),// scaling factor for triangle Ta
+					fb=t*d12/(d01+d12);
+				return {
+					inner : {
+						x : MiddlePoint.x-fa*(AfterPoint.x-FirstPoint.x),
+						y : MiddlePoint.y-fa*(AfterPoint.y-FirstPoint.y)
+					},
+					outer : {
+						x: MiddlePoint.x+fb*(AfterPoint.x-FirstPoint.x),
+						y : MiddlePoint.y+fb*(AfterPoint.y-FirstPoint.y)
+					}
+				};
+			};
+
+			//Calculate Order of Magnitude
+			var calculateOrderOfMagnitude = helpers.calculateOrderOfMagnitude = function(val){
+				return Math.floor(Math.log(val) / Math.LN10);
+			};
+
+			//Calculate scale range
+			//TODO understand this
+			var calculateScaleRange = helpers.calculateScaleRange = function(valuesArray, drawingSize, textSize, startFromZero, integersOnly){
+
+				//Set a min step of two - a point at the top of the graph, and a point
+				//at the base
+				var minSteps = 2;
+				var maxSteps = Math.floor(drawingSize/(textSize * 1.5));
+				var skipFitting = (minSteps >= maxSteps);
+
+				var maxValue = max(valuesArray);
+				var minValue = min(valuesArray);
+
+				//We need some degree of separation here to calculate the scales if all
+				//the values are the same. Adding/minusing 0.5 will give us a range of
+				//1
+				if (maxValue === minValue){
+					maxValue += 0.5;
+					//so we don't end up with a graph with a negative start value if
+					//we've said always start from zero
+					if (minValue >= 0.5 && !startFromZero){
+						minValue -= 0.5;
+					}
+					else{
+						//Make up a whole number above the values
+						maxValue += 0.5;
+					}
+				}
+
+				var valueRange = Math.abs(maxValue - minValue);
+				var rangeOrderOfMagnitude = calculateOrderOfMagnitude(valueRange);
+				var graphMax = Math.ceil(maxValue / (1 * Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude);
+				var graphMin = (startFromZero) ? 0 : Math.floor(minValue / (1 * Math.pow(10, rangeOrderOfMagnitude))) * Math.pow(10, rangeOrderOfMagnitude);
+				var graphRange = graphMax - graphMin;
+				var stepValue = Math.pow(10, rangeOrderOfMagnitude);
+				var numberOfSteps = Math.round(graphRange / stepValue);
+
+				//If we have more space on the graph we'll use it to give more
+				//definition to the data
+				while((numberOfSteps > maxSteps || (numberOfSteps * 2) < maxSteps) && !skipFitting) {
+					if (numberOfSteps > maxSteps){
+						stepValue *=2;
+						numberOfSteps = Math.round(graphRange/stepValue);
+						//Don't ever deal with a decimal number of steps - cancel fitting
+						//and just use the minimum number of steps
+						if (numberOfSteps % 1 !== 0){
+							skipFitting = true;
+						}
+					}
+					//We can fit in double the amount of scale point on the scale
+					else{
+						//If the user has declared ints only, and the step value isn't a
+						//decimal
+						if (integersOnly && rangeOrderOfMagnitude >= 0){
+							//If the user has said integers only, we need to check that
+							//making the scale more granular wouldn't make it a float
+							if (stepValue/2 % 1 === 0){
+								stepValue /=2;
+								numberOfSteps = Math.round(graphRange/stepValue);
+							}
+							//If it would make it a float, break out of the loop
+							else{
+								break;
+							}
+						}
+						//If the scale doesn't have to be an int, make the scale more
+						//granular anyway
+						else{
+							stepValue /=2;
+							numberOfSteps = Math.round(graphRange/stepValue);
+						}
+					}
+				}
+
+				if (skipFitting){
+					numberOfSteps = minSteps;
+					stepValue = graphRange / numberOfSteps;
+				}
+
+				return {
+					steps : numberOfSteps,
+					stepValue : stepValue,
+					min : graphMin,
+					max : graphMin + (numberOfSteps * stepValue)
+				};
+			};
+
+
+
+
+
+
 
 });
