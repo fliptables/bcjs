@@ -760,6 +760,144 @@
 			requestAnimFrame(animationFrame);
 		};
 
+	//-- Dom methods
+
+		//Get relative position
+		var getRelativePosition = helpers.getRelativePosition = function getRelativePositionFn(evt){
+			var mouseX;
+			var mouseY;
+			var e = evt.originalEvent || evt;
+			var canvas = evt.currentTarget || evt.srcElement;
+			var boundingRect = canvas.getBoundingClientRect();
+
+			if (e.touches){
+				mouseX = e.touches[0].clientX - boundingRect.left;
+				mouseY = e.touches[0].clientY - boundingRect.top;
+			}
+			else{
+				mouseX = e.clientX - boundingRect.left;
+				mouseY = e.clientY - boundingRect.top;
+			}
+
+			return {
+				x: mouseX,
+				y: mouseY
+			}
+		};
+
+		//Add Event
+		var addEvent = helpers.addEvent = function addEventFn(node, eventType, method){
+			if (node.addEventListener){
+				node.addEventListener(eventType, method);
+			} else if (node.attachEvent){
+				node.attachEvent("on"+eventType, method);
+			} else {
+				node["on"+eventType] = method;
+			}
+		};
+
+		//Remove Event
+		var removeEvent = helpers.removeEvent = function removeEventFn(node, eventType, handler){
+			if (node.removeEventListener){
+				node.removeEventListener(eventType, handler, false);
+			} else if (node.detachEvent){
+				node.detachEvent("on"+eventType, handler);
+			} else {
+				node["on" + eventType] = noop;
+			}
+		};
+
+		//Bind Events
+		var bindEvents = helpers.bindEvents = function bindEventsFn(chartInstance, arrayOfEvents, handler){
+			//Create the events object if it's not already present
+			if (!chartInstance.events) chartInstance.events = {};
+
+			each(arrayOfEvents, function(eventName){
+				chartInstance.events[eventName] = function(){
+					handler.apply(chartInstance, arguments);
+				};
+				addEvent(chartInstance.chart.canvas, eventName, chartInstance.events[eventName]);
+			});
+		};
+
+		//Unbind Events
+		var unbindEvents = helpers.unbindEvents = function unbindEventsFn(chartInstance, arrayOfEvents) {
+			each(arrayOfEvents, function(handler, eventName){
+				removeEvent(chartInstance.chart.canvas, eventName, handler);
+			});
+		};
+
+		//Get Maximum Width
+		var getMaximumWidth = helpers.getMaximumWidth = function getMaximumWidthFn(domNode){
+			var container = domNode.parentNode;
+			//TODO cross browser compat?
+			return container.clientWidth;
+		};
+
+		//Get Maximum Height
+		var getMaximumHeight = helpers.getMaximumHeight = function getMaximumHeightFn(domNode){
+			var container = domNode.parentNode;
+			//TODO cross browser compat?
+			return container.clientHeight;
+		};
+
+		//Get Maximum Size
+		var getMaximumSize = helpers.getMaximumSize = helpers.getMaximumWidth; //Legacy support
+
+		//Retina Scale
+		var retinaScale = helpers.retinaScale = function retinaScaleFn(chart){
+			var ctx = chart.ctx;
+			var width = chart.canvas.width;
+			var height = chart.canvas.height;
+
+			if (window.devicePixelRatio) {
+				ctx.canvas.style.width = width + "px";
+				ctx.canvas.style.height = height + "px";
+				ctx.canvas.height = height * window.devicePixelRatio;
+				ctx.canvas.width = width * window.devicePixelRatio;
+				ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+			}
+		};
+
+	//-- Canvas Methods
+
+		//Clear
+		var clear = helpers.clear = function clearFn(chart){
+			chart.ctx.clearRect(0,0,chart.width,chart.height);
+		};
+
+		//Font String
+		var fontString = helpers.fontString = function(pixelSize, fontStyle, fontFamily){
+			return fontStyle + " " + pixelSize + "px " + fontFamily;
+		};
+
+		//Longest Text
+		var longestText = helpers.longestText = function longestTextFn(ctx, font, arrayOfStrings){
+			ctx.font = font;
+			var longest = 0;
+			each(arrayOfStrings, function(string){
+				var textWidth = ctx.measureText(string).width;
+				longest = (textWidth > longest) ? textWidth : longest;
+			});
+			return longest;
+		};
+
+		//Draw Rounded Rectangle
+		var drawRoundedRectangle = helpers.drawRoundedRectangle = function(ctx, x, y, width, height, radius){
+			ctx.beginPath();
+			ctx.moveTo(x + radius, y);
+			ctx.lineTo(x + width - radius, y);
+			ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+			ctx.lineTo(x + width, y + height - radius);
+			ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+			ctx.lineTo(x + radius, y + height);
+			ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+			ctx.lineTo(x, y + radius);
+			ctx.quadraticCurveTo(x, y, x + radius, y);
+			ctx.closePath();
+		};
+
+
 
 
 
