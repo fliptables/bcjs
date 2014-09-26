@@ -897,8 +897,273 @@
 			ctx.closePath();
 		};
 
+	//Store a reference to each instance - allowing us to globally resize chart
+	//instances on window resize. Destroy method on the chart will remove the
+	//instance of the chart from this reference.
+	Chart.instances = {};
 
+	Chart.Type = function TypeFn(data, options, chart){
+		this.options = options;
+		this.chart = chart;
+		this.id = uid();
+		//Add the chart instance to the global namespace
+		Chart.instances[this.id] = this;
 
+		//Initialize is always called when a chart type is created
+		//By default it is a no op, but it should be extended
+		if (option.responsive){
+			this.resize();
+		}
+		this.initialize.call(this, data);
+	};
+
+	//Core methods that'll be a part of every chart type
+	extend(Chart.Type.Prototype, {
+		intitialize: function(){ return this; },
+		clear: function(){
+			clear(this.chart);
+			return this;
+		},
+		stop: function(){
+			//Stops any current animation loop occurring
+			helpers.cancelAnimFrame.call(root, this.animationFrame);
+			return this;
+		},
+		resize: function(callback){
+			this.stop();
+			var canvas = this.chart.canvas;
+			var newWidth = getMaximumWidth(this.chart.canvas);
+			var newHeight = this.options.maintainAspectRatio ? newWidth / this.chart.aspectRatio : getMaximumHeight(this.chart.canvas);
+
+			canvas.width = this.chart.width = newWidth;
+			canvas.height = this.chart.height = newHeight;
+
+			retinaScale(this.chart);
+
+			if (typeof callback === "function"){function
+				callback.apply(this, Array.prototype.slice.call(arguments, 1));
+			}
+			return this;
+		},
+		reflow: noop,
+		render: function(reflow){
+			if (reflow){
+				this.reflow();
+			}
+			if (this.options.animation && !reflow){
+				helpers.animationLoop(
+					this.draw,
+					this.options.animationSteps,
+					this.options.animationEasing,
+					this.options.onAnimationProgress,
+					this.options.onAnimationComplete,
+					this
+				);
+			}
+			else {
+				this.draw();
+				this.options.onAnimationComplete.call(this);
+			}
+			return this;
+		},
+		generateLegend: function(){
+			return template(this.options.legendTemplate, this);
+		},
+		destroy: function(){
+			this.clear();
+			unbindEvents(this, this.events);
+			delete Chart.instances[this.id];
+		},
+		showTooltip: function(){
+			//Only redraw the chart if we've actually what we're hovering
+			if (typeof this.activeElements === 'undefined') this.activeElements = [];
+
+			var isChanged = (function(Elements){
+				var changed = false;
+
+				if (Elements.length !== this.activeElements.length){
+					changed = true;
+					return changed;
+				}
+
+				each(Elements, function(element, index){
+					if (element !== this.activeElements[index]){
+						changed = true;
+					}
+				}, this);
+				return changed;
+			}).call(this, ChartElements);
+
+			if (!isChanged && !forceRedraw){
+				return;
+			}
+			else {
+				this.activeElements = ChartElements;
+			}
+			this.draw();
+			if (ChartElements.length > 0){
+				//If we have multiple datasets, show a MultiTooltip for all of the data
+				//points at that index
+				if (this.datasets && this.datasets.length > 1){
+					var dataArray;
+					var dataIndex;
+
+					for (var i = this.datasets.length - 1; i >= 0; i--) {
+						dataArray = this.datasets[i].points || this.datasets[i].bars || this.datasets[i].segments;
+						dataIndex = indexOf(dataArray, ChartElements[0]);
+						if (dataIndex !== -1){
+							break;
+						}
+					}
+
+					var tooltipLabels = [];
+					var tooltipColors = [];
+					var medianPosition = (function(index) {
+
+						//Get all the points at that particular index
+						var Elements = [];
+						var dataCollection;
+						var xPositions = [];
+						var yPositions = [];
+						var xMax;
+						var yMax;
+						var xMin;
+						var yMin;
+
+						helpers.each(Elements, function(element) {
+							dataCollection = dataset.points || dataset.bars || dataset.segments;
+							if (dataCollection[dataIndex] && dataCollection[dataIndex].hasValue()){
+								Elements.push(dataCollection[dataIndex]);
+							}
+						});
+
+						helpers.each(Elements, function(element) {
+							xPositions.push(element.x);
+							yPositions.push(element.y);
+
+							//Include any color information about the element
+							tooltipLabels.push(helpers.template(this.options.multiTooltipTemplate, element));
+							tooltipColors.push({
+								fill: element._saved.fillColor || element.fillColor,
+								stroke: element._saved.strokeColor || element.strokeColor
+							});
+
+						}, this);
+
+						yMin = min(yPositions);
+						yMax = max(yPositions);
+
+						xMin = min(xPositions);
+						xMax = max(xPositions);
+
+						return {
+							x: (xMin > this.chart.width/2) ? xMin : xMax,
+							y: (yMin + yMax)/2
+						};
+					}).call(this, dataIndex);
+
+					new Chart.MultiTooltip({
+						x: medianPosition.x,
+						y: medianPosition.y,
+						xPadding: this.options.tooltipXPadding,
+						yPadding: this.options.tooltipYPadding,
+						xOffset: this.options.tooltipXOffset,
+						fillColor: this.options.tooltipFillColor,
+						textColor: this.options.tooltipFontColor,
+						fontFamily: this.options.tooltipFontFamily,
+						fontStyle: this.options.tooltipFontStyle,
+						fontSize: this.options.tooltipFontSize,
+						titleTextColor: this.options.tooltipTitleFontColor,
+						titleFontFamily: this.options.tooltipTitleFontFamily,
+						titleFontStyle: this.options.tooltipTitleFontStyle,
+						titleFontSize: this.options.tooltipTitleFontSize,
+						cornerRadius: this.options.tooltipCornerRadius,
+						labels: tooltipLabels,
+						legendColors: tooltipColors,
+						legendColorBackground : this.options.multiTooltipKeyBackground,
+						title: ChartElements[0].label,
+						chart: this.chart,
+						ctx: this.chart.ctx
+					}).draw();
+
+				} else {
+					each(ChartElements, function(Element) {
+						var tooltipPosition = Element.tooltipPosition();
+						new Chart.Tooltip({
+							x: Math.round(tooltipPosition.x),
+							y: Math.round(tooltipPosition.y),
+							xPadding: this.options.tooltipXPadding,
+							yPadding: this.options.tooltipYPadding,
+							fillColor: this.options.tooltipFillColor,
+							textColor: this.options.tooltipFontColor,
+							fontFamily: this.options.tooltipFontFamily,
+							fontStyle: this.options.tooltipFontStyle,
+							fontSize: this.options.tooltipFontSize,
+							caretHeight: this.options.tooltipCaretSize,
+							cornerRadius: this.options.tooltipCornerRadius,
+							text: template(this.options.tooltipTemplate, Element),
+							chart: this.chart
+						}).draw();
+					}, this);
+				}
+			}
+			return this;
+		},
+		toBase64Image: function(){
+			return this.chart.canvas.toDataURL.apply(this.chart.canvas, arguments);
+		}
+	});
+
+	Chart.Type.extend = function(extensions){
+
+		var parent = this;
+
+		var ChartType = function(){
+			return parent.apply(this, arguments);
+		};
+
+		//Copy the prototype obect of the this class
+		ChartType.prototype = clone(parent.prototype);
+
+		//Now overwrite some of the properties in the base class widht the new
+		//extensions
+		extend(ChartType.prototype, extensions);
+
+		ChartType.extend = Chart.Type.extend;
+
+		if (extensions.name || parent.prototype.name){
+
+			var chartName = extensions.name || parent.prototype.name;
+			//Assign any potential default values of the new chart type
+
+			//If none are defined, we'll use a lcone of the chart type this is being
+			//extended from. I.e. if we extend a line chart, we'll use the defaults
+			//from the line chart if our new chart doesn't define some defaults of
+			//their own.
+
+			var baseDefaults = (Chart.defaults[parent.prototype.name]) ? clone(Chart.defauls[parent.prototype.name]) : {};
+
+			Chart.defaults[chartName] = extend(baseDefauls, extensions.defaults);
+
+			Chart.types[chartName] = ChartType;
+
+			//Register this new chart type in the chart prototype
+			Chart.prototype[chartName] = function(data, options){
+				var config = merge(Chart.defaults.global, Chart.defaults[chartName], options || {});
+				return new ChartType(data, config, this);
+			};
+
+		} else {
+			warn("Name not provided for this chart, so it hasn't been registered");
+		}
+		return parent;
+	};
+
+	Chart.Element = function ElementFn(configuration){
+		extend(this, configuration);
+		this.initialize.apply(this, arguments);
+		this.save();
+	};
 
 
 
