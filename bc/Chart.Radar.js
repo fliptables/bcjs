@@ -340,59 +340,29 @@
 
 Chart.types.Radar.extend({
 	name:'Nash',
+	defaults: {
+		tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value.toFixed(1) %>",
+		scaleOverride: true,
+		scaleSteps: 10,
+		scaleStepWidth: 1,
+		scaleStartValue: 0
+	},
 	initialize: function(data){
-		console.log(data);
-		console.log(this);
-		var scaleTop = this.chart.height/2;
-		var scaleBottom = this.chart.height;
 		var me = this;
 
-		this.chart.canvas.onclick = function(e) {
-			var xCenter = me.scale.xCenter;
-			var yCenter = me.scale.yCenter;
-			var newX;
-			var newY;
-			var newVal;
-			var baseZero = xCenter;
-			var baseTen = me.chart.width;
-			var pixelPerNumber = (baseTen - baseZero)/10;
-			console.log(pixelPerNumber);
-
-
-			console.log('x:'+xCenter + ' y:'+yCenter);
+		this.chart.canvas.onmousedown = function(e) {
+			var x1 = me.scale.xCenter;
+			var y1 = me.scale.yCenter;
+			var x2 = e.clientX;
+			var y2 = e.clientY;
+			var newDist = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1, 2));
+			var pixelPerNumber = (x1-40)/10;
 			var activePoint = myRadar.getPointsAtEvent(e);
-			var currentX = e.clientX;
-			var currentY = e.clientY;
-			if (currentX > xCenter){
-				newX = currentX - xCenter;
-			} else {
-				newX = xCenter - currentX;
-			}
-			newX = newX / pixelPerNumber;
-			if (currentY > yCenter){
-				newY = currentY - yCenter;
-			} else {
-				newY = yCenter - currentY;
-			}
-			newY = newY / pixelPerNumber;
-
-			newVal = (newY+newX)/2;
-			console.log(newX);
-			console.log(newY);
-			console.log(newVal);
-
-
-
-
-
-			if(e.clientY < scaleTop){
-					activePoint[0].value = newVal;
-				}else{
-
-			}
-			console.log(e);
-			console.log(activePoint);
+			var newVal = (newDist/pixelPerNumber);
+			activePoint[0].value = newVal;
+			me.update();
 		}
+
 		Chart.types.Radar.prototype.initialize.apply(this, arguments)
 	}
 });
