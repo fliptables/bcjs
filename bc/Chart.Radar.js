@@ -300,8 +300,6 @@
 					}
 				},this);
 
-
-
 				//Draw the line between all the points
 				ctx.lineWidth = this.options.datasetStrokeWidth;
 				ctx.strokeStyle = dataset.strokeColor;
@@ -348,29 +346,57 @@ Chart.types.Radar.extend({
 	},
 	initialize: function(data){
 		var me = this;
+		var activePoint;
+		var mouseDown = 0;
 
-		this.chart.canvas.onmousedown = function(e) {
-			var scale = me.scale;
-			var x1 = scale.xCenter+8.5;
-			var y1 = scale.yCenter+8.5;
-			var x2 = e.clientX;
-			var y2 = e.clientY;
-			var newDist = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1, 2));
-			var pixelPerNumber = (scale.drawingArea)/(scale.max - scale.min);
-			var activePoint = myRadar.getPointsAtEvent(e);
-			var newVal = (newDist/pixelPerNumber);
-			if (newVal >= 9.7) {
-				activePoint[0].value = 10;
-			}
-			else if (newVal < 0.8) {
-				activePoint[0].value = 0;
-			}
-			else {
-				activePoint[0].value = newVal;
-			}
-			me.update();
+		//Mouse State
+		document.body.onmousedown = function() {
+			++mouseDown;
+		}
+		document.body.onmouseup = function() {
+			--mouseDown;
 		}
 
+		//Update the chart if we have
+		//a selected point
+		function reDraw(e){
+			if (activePoint && activePoint[0]){
+				var scale = me.scale;
+				var x1 = scale.xCenter+8.5;
+				var y1 = scale.yCenter+8.5;
+				var x2 = e.clientX;
+				var y2 = e.clientY;
+				var newDist = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1, 2));
+				var pixelPerNumber = (scale.drawingArea)/(scale.max - scale.min);
+				var newVal = (newDist/pixelPerNumber);
+				if (newVal >= 9.7) {
+					activePoint[0].value = 10;
+				}
+				else if (newVal < 0.8) {
+					activePoint[0].value = 0;
+				}
+				else {
+					activePoint[0].value = newVal;
+				}
+				me.update();
+			}
+		}
+
+		//Event listeners
+		this.chart.canvas.onmousedown = function(e) {
+			activePoint = myRadar.getPointsAtEvent(e);
+			reDraw(e);
+		}
+		this.chart.canvas.onmouseup = function(e) {
+			me.options.animation = true;
+			reDraw(e);
+		}
+		this.chart.canvas.onmousemove = function(e) {
+			if(mouseDown){
+				me.options.animation = false;
+				reDraw(e);
+			}
+		}
 		Chart.types.Radar.prototype.initialize.apply(this, arguments)
 	}
 });
