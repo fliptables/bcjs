@@ -14,7 +14,7 @@
 			scaleShowLine : true,
 
 			//Boolean - Whether we show the angle lines out of the radar
-			angleShowLineOut : true,
+			angleShowLineOut : false,
 
 			//Boolean - Whether to show labels on the scale
 			scaleShowLabels : false,
@@ -23,7 +23,7 @@
 			scaleBeginAtZero : true,
 
 			//String - Colour of the angle line
-			angleLineColor : "rgba(0,0,0,.1)",
+			angleLineColor : "white",
 
 			//Number - Pixel width of the angle line
 			angleLineWidth : 1,
@@ -44,10 +44,10 @@
 			pointDot : true,
 
 			//Number - Radius of each point dot in pixels
-			pointDotRadius : 3,
+			pointDotRadius : 5,
 
 			//Number - Pixel width of point dot stroke
-			pointDotStrokeWidth : 1,
+			pointDotStrokeWidth : 3,
 
 			//Number - amount extra to add to the radius to cater for hit detection outside the drawn point
 			pointHitDetectionRadius : 20,
@@ -154,7 +154,6 @@
 			if (pointIndex >= this.scale.valuesCount || pointIndex < 0){
 				pointIndex = 0;
 			}
-
 			if (fromCenter.distance <= this.scale.drawingArea){
 				helpers.each(this.datasets, function(dataset){
 					activePointsCollection.push(dataset.points[pointIndex]);
@@ -305,6 +304,7 @@
 
 				//Draw the line between all the points
 				ctx.lineWidth = this.options.datasetStrokeWidth;
+				ctx.lineJoin = "round";
 				ctx.strokeStyle = dataset.strokeColor;
 				ctx.beginPath();
 				helpers.each(dataset.points,function(point,index){
@@ -351,15 +351,24 @@ Chart.types.Radar.extend({
 		var me = this;
 
 		this.chart.canvas.onmousedown = function(e) {
-			var x1 = me.scale.xCenter;
-			var y1 = me.scale.yCenter;
+			var scale = me.scale;
+			var x1 = scale.xCenter+8.5;
+			var y1 = scale.yCenter+8.5;
 			var x2 = e.clientX;
 			var y2 = e.clientY;
 			var newDist = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1, 2));
-			var pixelPerNumber = (x1-40)/10;
+			var pixelPerNumber = (scale.drawingArea)/(scale.max - scale.min);
 			var activePoint = myRadar.getPointsAtEvent(e);
 			var newVal = (newDist/pixelPerNumber);
-			activePoint[0].value = newVal;
+			if (newVal >= 9.7) {
+				activePoint[0].value = 10;
+			}
+			else if (newVal < 0.8) {
+				activePoint[0].value = 0;
+			}
+			else {
+				activePoint[0].value = newVal;
+			}
 			me.update();
 		}
 
