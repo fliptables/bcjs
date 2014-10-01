@@ -304,7 +304,6 @@
 
 				//Draw the line between all the points
 				ctx.lineWidth = this.options.datasetStrokeWidth;
-				ctx.lineJoin = "round";
 				ctx.strokeStyle = dataset.strokeColor;
 				ctx.beginPath();
 				helpers.each(dataset.points,function(point,index){
