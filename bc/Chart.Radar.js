@@ -347,21 +347,13 @@ Chart.types.Radar.extend({
 		var activePoint;
 		var mouseDown = 0;
 
-		//Mouse State
-		document.body.onmousedown = function() {
-			++mouseDown;
-		}
-		document.body.onmouseup = function() {
-			--mouseDown;
-		}
-
 		//Update the chart if we have
 		//a selected point
 		function reDraw(e){
 			if (activePoint && activePoint[0]){
 				var scale = me.scale;
-				var x1 = scale.xCenter+8.5;
-				var y1 = scale.yCenter+8.5;
+				var x1 = scale.xCenter+me.chart.canvas.offsetLeft;
+				var y1 = scale.yCenter+me.chart.canvas.offsetTop;
 				var x2 = e.clientX;
 				var y2 = e.clientY;
 				var newDist = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1, 2));
@@ -382,12 +374,14 @@ Chart.types.Radar.extend({
 
 		//Event listeners
 		this.chart.canvas.onmousedown = function(e) {
-
-			console.log(me);
-			activePoint = me.getPointsAtEvent(e);
+			++mouseDown;
+			var selectedChart = {}
+			selectedChart = bcCharts[me.id];
+			activePoint = selectedChart.getPointsAtEvent(e);
 			reDraw(e);
 		}
 		this.chart.canvas.onmouseup = function(e) {
+			--mouseDown;
 			me.options.animation = true;
 			reDraw(e);
 			activePoint = undefined;
@@ -487,15 +481,11 @@ function findSPXScript(cb) {
 		var allCharts = document.getElementsByClassName('bc_chart');
 		window.bcCharts = {};
 		Chart.helpers.each(allCharts, function(value, index){
-			window.bcCharts['chart-'+(index+1)] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(radarChartData, {
+			//TODO
+			//get radarChartData here
+			window.bcCharts['chart-'+index] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(radarChartData, {
 				responsive: true
 			});
-			window.bcCharts['chart-'+(index+1)].bcChartId = value.getAttribute('data-item');
-		});
-
-		window.testing = bcCharts[0];
-
-		window.myRadr = new Chart(document.getElementById("bcont").getContext("2d")).BetterContext(radarChartData, {
-			responsive: true
+			window.bcCharts['chart-'+index].bcChartId = value.getAttribute('data-item');
 		});
 	}
