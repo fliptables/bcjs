@@ -5,8 +5,6 @@
 		Chart = root.Chart,
 		helpers = Chart.helpers;
 
-
-
 	Chart.Type.extend({
 		name: "Radar",
 		defaults:{
@@ -336,7 +334,7 @@
 }).call(this);
 
 Chart.types.Radar.extend({
-	name:'Nash',
+	name:'BetterContext',
 	defaults: {
 		tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value.toFixed(1) %>",
 		scaleOverride: true,
@@ -384,7 +382,9 @@ Chart.types.Radar.extend({
 
 		//Event listeners
 		this.chart.canvas.onmousedown = function(e) {
-			activePoint = myRadar.getPointsAtEvent(e);
+
+			console.log(me);
+			activePoint = me.getPointsAtEvent(e);
 			reDraw(e);
 		}
 		this.chart.canvas.onmouseup = function(e) {
@@ -402,3 +402,100 @@ Chart.types.Radar.extend({
 	}
 });
 
+//Function to find better context script,
+//and get the data-account data attribute,
+//so we can determine the site account
+function findSPXScript(cb) {
+	var MAXWAITS = 100;
+	var waits = 0;
+	var srcRegex = new RegExp("spxw\\.js(?:#domainid=[\\w-]+)?$");
+
+	(function wait() {
+		var scripts = document.getElementsByTagName('script');
+		var out = [];
+		var idx = 0;
+		var script = null;
+
+		for(; idx < scripts.length; idx++) {
+			script = scripts.item(idx);
+			if(script && srcRegex.exec(script.src) !== null) {
+				out.push({
+					domainId: script.getAttribute('data-domain')
+				});
+			}
+		}
+
+		if(out.length) {
+			cb(out);
+		} else {
+			waits++;
+			if(waits < MAXWAITS) {
+				setTimeout(wait, 100);
+			}
+		}
+
+	}());
+}
+
+//Find charts
+//Get data
+	window.onload = function(){
+
+		//JSONP, RESPONSE HANDLER
+			function foo(data) {
+					// do stuff with JSON
+			}
+
+			var script = document.createElement('script');
+			script.src = '//example.com/path/to/jsonp?callback=foo';
+
+			//Send Request
+			document.getElementsByTagName('head')[0].appendChild(script);
+			// or document.head.appendChild(script) in modern browsers
+
+		var radarChartData = {
+			labels: ["Eating", "Drinking", "Sleeping", "Designing", "Coding"],
+			datasets: [
+				{
+					label: "My Second dataset",
+					fillColor: "rgba(151,187,205,0.2)",
+					strokeColor: "rgba(151,187,205,1)",
+					pointColor: "rgba(151,187,205,1)",
+					pointStrokeColor: "#fff",
+					pointHighlightFill: "#fff",
+					pointHighlightStroke: "rgba(151,187,205,1)",
+					data: [1,1,1,1,1]
+				}
+			]
+		};
+		var radarChartData2 = {
+			labels: ["Eating", "Drinking", "Sleeping", "Designing", "Coding"],
+			datasets: [
+				{
+					label: "My Second dataset",
+					fillColor: "rgba(251,185,605,0.2)",
+					strokeColor: "rgba(151,187,205,1)",
+					pointColor: "rgba(151,187,205,1)",
+					pointStrokeColor: "#fff",
+					pointHighlightFill: "#fff",
+					pointHighlightStroke: "rgba(151,187,205,1)",
+					data: [1,1,1,1,1]
+				}
+			]
+		};
+
+		var allCharts = document.getElementsByClassName('bc_chart');
+		window.bcCharts = {};
+		Chart.helpers.each(allCharts, function(value, index){
+			window.bcCharts['chart-'+(index+1)] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(radarChartData, {
+				responsive: true
+			});
+			window.bcCharts['chart-'+(index+1)].bcChartId = value.getAttribute('data-item');
+		});
+
+		window.testing = bcCharts[0];
+
+		window.myRadr = new Chart(document.getElementById("bcont").getContext("2d")).BetterContext(radarChartData, {
+			responsive: true
+		});
+	}
