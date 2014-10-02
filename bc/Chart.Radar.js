@@ -390,6 +390,7 @@ Chart.types.Radar.extend({
 		this.chart.canvas.onmouseup = function(e) {
 			me.options.animation = true;
 			reDraw(e);
+			activePoint = undefined;
 		}
 		this.chart.canvas.onmousemove = function(e) {
 			if(mouseDown){
