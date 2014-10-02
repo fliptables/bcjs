@@ -372,11 +372,18 @@ Chart.types.Radar.extend({
 			}
 		}
 
+		//Returns the better context
+		//local chart id, which matches
+		//the key in bcCharts
+		function whichChart(){
+			return me.bcId;
+		}
+
 		//Event listeners
 		this.chart.canvas.onmousedown = function(e) {
 			++mouseDown;
 			var selectedChart = {}
-			selectedChart = bcCharts[me.id];
+			selectedChart = Chart.helpers.bcCharts[whichChart()];
 			activePoint = selectedChart.getPointsAtEvent(e);
 			reDraw(e);
 		}
@@ -479,13 +486,14 @@ function findSPXScript(cb) {
 		};
 
 		var allCharts = document.getElementsByClassName('bc_chart');
-		window.bcCharts = {};
+		Chart.helpers.bcCharts = {};
 		Chart.helpers.each(allCharts, function(value, index){
 			//TODO
 			//get radarChartData here
-			window.bcCharts['chart-'+index] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(radarChartData, {
+			Chart.helpers.bcCharts['bcId-'+index] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(radarChartData, {
 				responsive: true
 			});
-			window.bcCharts['chart-'+index].bcChartId = value.getAttribute('data-item');
+			Chart.helpers.bcCharts['bcId-'+index].bcItemId = value.getAttribute('data-item');
+			Chart.helpers.bcCharts['bcId-'+index].bcId = 'bcId-'+index;
 		});
 	}
