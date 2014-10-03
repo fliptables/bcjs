@@ -344,29 +344,36 @@ Chart.types.Radar.extend({
 	},
 	initialize: function(data){
 		var me = this;
-		var activePoint;
-		var mouseDown = 0;
+		me.mouseDown = 0;
+		me.activePoint;
 
 		//Update the chart if we have
 		//a selected point
 		function reDraw(e){
-			if (activePoint && activePoint[0]){
+			if (me.activePoint && me.activePoint[0]){
 				var scale = me.scale;
+				console.log(scale);
 				var x1 = scale.xCenter+me.chart.canvas.offsetLeft;
+				console.log(x1);
 				var y1 = scale.yCenter+me.chart.canvas.offsetTop;
+				console.log(y1);
 				var x2 = e.clientX;
+				console.log(x2);
 				var y2 = e.clientY;
+				console.log(y2);
 				var newDist = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1, 2));
 				var pixelPerNumber = (scale.drawingArea)/(scale.max - scale.min);
 				var newVal = (newDist/pixelPerNumber);
+				console.log(newDist);
+				console.log(newVal);
 				if (newVal >= 9.7) {
-					activePoint[0].value = 10;
+					me.activePoint[0].value = 10;
 				}
 				else if (newVal < 0.8) {
-					activePoint[0].value = 0;
+					me.activePoint[0].value = 0;
 				}
 				else {
-					activePoint[0].value = newVal;
+					me.activePoint[0].value = newVal;
 				}
 				me.update();
 			}
@@ -380,21 +387,21 @@ Chart.types.Radar.extend({
 		}
 
 		//Event listeners
-		this.chart.canvas.onmousedown = function(e) {
-			++mouseDown;
+		me.chart.canvas.onmousedown = function(e) {
+			me.mouseDown++;
 			var selectedChart = {}
 			selectedChart = Chart.helpers.bcCharts[whichChart()];
-			activePoint = selectedChart.getPointsAtEvent(e);
+			me.activePoint = selectedChart.getPointsAtEvent(e);
 			reDraw(e);
 		}
-		this.chart.canvas.onmouseup = function(e) {
-			--mouseDown;
+		me.chart.canvas.onmouseup = function(e) {
+			me.mouseDown--;
 			me.options.animation = true;
 			reDraw(e);
-			activePoint = undefined;
+			me.activePoint = undefined;
 		}
-		this.chart.canvas.onmousemove = function(e) {
-			if(mouseDown){
+		me.chart.canvas.onmousemove = function(e) {
+			if(me.mouseDown){
 				me.options.animation = false;
 				reDraw(e);
 			}
@@ -442,10 +449,17 @@ function findSPXScript(cb) {
 //Get data
 	window.onload = function(){
 
-		//JSONP, RESPONSE HANDLER
-			function foo(data) {
-					// do stuff with JSON
-			}
+		//All charts on the page
+		var allCharts = document.getElementsByClassName('bc_chart');
+		var bcQuery = function(){
+			Chart.helpers.each(allCharts, function(value, index){
+				//Get the bc item id of the current chart
+				var itemId = value.getAttribute('data-item');
+			});
+		};
+
+		//Create a helper to store all the charts owned by bc
+		Chart.helpers.bcCharts = {};
 
 			var script = document.createElement('script');
 			script.src = '//example.com/path/to/jsonp?callback=foo';
@@ -454,46 +468,85 @@ function findSPXScript(cb) {
 			document.getElementsByTagName('head')[0].appendChild(script);
 			// or document.head.appendChild(script) in modern browsers
 
-		var radarChartData = {
-			labels: ["Eating", "Drinking", "Sleeping", "Designing", "Coding"],
-			datasets: [
-				{
-					label: "My Second dataset",
-					fillColor: "rgba(151,187,205,0.2)",
-					strokeColor: "rgba(151,187,205,1)",
-					pointColor: "rgba(151,187,205,1)",
-					pointStrokeColor: "#fff",
-					pointHighlightFill: "#fff",
-					pointHighlightStroke: "rgba(151,187,205,1)",
-					data: [1,1,1,1,1]
-				}
-			]
-		};
-		var radarChartData2 = {
-			labels: ["Eating", "Drinking", "Sleeping", "Designing", "Coding"],
-			datasets: [
-				{
-					label: "My Second dataset",
-					fillColor: "rgba(251,185,605,0.2)",
-					strokeColor: "rgba(151,187,205,1)",
-					pointColor: "rgba(151,187,205,1)",
-					pointStrokeColor: "#fff",
-					pointHighlightFill: "#fff",
-					pointHighlightStroke: "rgba(151,187,205,1)",
-					data: [1,1,1,1,1]
-				}
-			]
+
+		var mockData = {
+			"labels": ["Eating", "Drinking", "Sleeping", "Designing", "Coding"],
+			"2": {
+				"m1": 4,
+				"m2": 6,
+				"m3": 3,
+				"m4": 5,
+				"m5": 2,
+				"total":433
+			},
+			"33": {
+				"m1": 9,
+				"m2": 2,
+				"m3": 7,
+				"m4": 8,
+				"m5": 5,
+				"total":123
+			},
+			"6": {
+				"m1": 9,
+				"m2": 2,
+				"m3": 8,
+				"m4": 1,
+				"m5": 7,
+				"total":942
+			}
 		};
 
-		var allCharts = document.getElementsByClassName('bc_chart');
-		Chart.helpers.bcCharts = {};
-		Chart.helpers.each(allCharts, function(value, index){
-			//TODO
-			//get radarChartData here
-			Chart.helpers.bcCharts['bcId-'+index] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(radarChartData, {
-				responsive: true
+		function bcDataMorph(originalData, bcLabels){
+			return {
+						labels: bcLabels,
+						datasets: [
+							{
+								label: "My Second dataset",
+								fillColor: "rgba(251,185,605,0.2)",
+								strokeColor: "rgba(151,187,205,1)",
+								pointColor: "rgba(151,187,205,1)",
+								pointStrokeColor: "#fff",
+								pointHighlightFill: "#fff",
+								pointHighlightStroke: "rgba(151,187,205,1)",
+								data: [
+										originalData["m1"],
+										originalData["m2"],
+										originalData["m3"],
+										originalData["m4"],
+										originalData["m5"]
+										]
+							}
+						]
+					}
+		}
+
+		//JSONP, RESPONSE HANDLER
+		function initCharts(bcMultiDataSets) {
+
+			//Iterate the charts, and create new bc charts
+			//for each instance
+			Chart.helpers.each(allCharts, function(value, index){
+				//Get the bc item id of the current chart
+				var bcItemId = value.getAttribute('data-item');
+
+				//Morph the data sent from bc, create the dataset to be used
+				//making this new chart
+				var bcDataSet = bcDataMorph(bcMultiDataSets[bcItemId], bcMultiDataSets["labels"]);
+
+				//Make the chart
+				Chart.helpers.bcCharts['bcId-'+index] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(bcDataSet, {
+					responsive: true
+				});
+
+				//Set bc item id, as well as the chart id, for self reference in bcCharts
+				Chart.helpers.bcCharts['bcId-'+index].bcItemId = bcItemId;
+				Chart.helpers.bcCharts['bcId-'+index].bcId = 'bcId-'+index;
 			});
-			Chart.helpers.bcCharts['bcId-'+index].bcItemId = value.getAttribute('data-item');
-			Chart.helpers.bcCharts['bcId-'+index].bcId = 'bcId-'+index;
-		});
+		}
+
+		//THIS IS THE PRETEND JSON P RESPONSE
+		//REMOVE WHEN REAL JSON P RESPONSE EXISTS
+		initCharts(mockData);
+
 	}
