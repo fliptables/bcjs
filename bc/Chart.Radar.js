@@ -352,20 +352,13 @@ Chart.types.Radar.extend({
 		function reDraw(e){
 			if (me.activePoint && me.activePoint[0]){
 				var scale = me.scale;
-				console.log(scale);
 				var x1 = scale.xCenter+me.chart.canvas.offsetLeft;
-				console.log(x1);
 				var y1 = scale.yCenter+me.chart.canvas.offsetTop;
-				console.log(y1);
-				var x2 = e.clientX;
-				console.log(x2);
-				var y2 = e.clientY;
-				console.log(y2);
+				var x2 = e.pageX;
+				var y2 = e.pageY;
 				var newDist = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1, 2));
 				var pixelPerNumber = (scale.drawingArea)/(scale.max - scale.min);
 				var newVal = (newDist/pixelPerNumber);
-				console.log(newDist);
-				console.log(newVal);
 				if (newVal >= 9.7) {
 					me.activePoint[0].value = 10;
 				}
@@ -522,7 +515,7 @@ function findSPXScript(cb) {
 		}
 
 		//JSONP, RESPONSE HANDLER
-		function initCharts(bcMultiDataSets) {
+		function initBcCharts(bcMultiDataSets) {
 
 			//Iterate the charts, and create new bc charts
 			//for each instance
@@ -547,6 +540,6 @@ function findSPXScript(cb) {
 
 		//THIS IS THE PRETEND JSON P RESPONSE
 		//REMOVE WHEN REAL JSON P RESPONSE EXISTS
-		initCharts(mockData);
+		initBcCharts(mockData);
 
 	}
