@@ -403,143 +403,120 @@ Chart.types.Radar.extend({
 	}
 });
 
-//Function to find better context script,
-//and get the data-account data attribute,
-//so we can determine the site account
-function findSPXScript(cb) {
-	var MAXWAITS = 100;
-	var waits = 0;
-	var srcRegex = new RegExp("spxw\\.js(?:#domainid=[\\w-]+)?$");
-
-	(function wait() {
-		var scripts = document.getElementsByTagName('script');
-		var out = [];
-		var idx = 0;
-		var script = null;
-
-		for(; idx < scripts.length; idx++) {
-			script = scripts.item(idx);
-			if(script && srcRegex.exec(script.src) !== null) {
-				out.push({
-					domainId: script.getAttribute('data-domain')
-				});
-			}
-		}
-
-		if(out.length) {
-			cb(out);
-		} else {
-			waits++;
-			if(waits < MAXWAITS) {
-				setTimeout(wait, 100);
-			}
-		}
-
-	}());
-}
-
 //Find charts
 //Get data
-	window.onload = function(){
+window.onload = function(){
 
-		//All charts on the page
-		var allCharts = document.getElementsByClassName('bc_chart');
-		var bcQuery = function(){
-			Chart.helpers.each(allCharts, function(value, index){
-				//Get the bc item id of the current chart
-				var itemId = value.getAttribute('data-item');
-			});
-		};
+	//All charts on the page
+	var allCharts = document.getElementsByClassName('bc_chart');
 
-		//Create a helper to store all the charts owned by bc
-		Chart.helpers.bcCharts = {};
+	//Create a helper to store all the charts owned by bc
+	Chart.helpers.bcCharts = {};
 
-			var script = document.createElement('script');
-			script.src = '//example.com/path/to/jsonp?callback=foo';
+	//Create the query we're going to make our JSONP
+	//request with
+	var bcQuery = function(){
+		var siteId = document.getElementById('bctxtScript').getAttribute('data-account');
+		var query = '/api/item_ratings/get/average_and_count?site_id='+siteId;
+		Chart.helpers.each(allCharts, function(value, index){
+			//Get the bc item id of the current chart
+			var itemId = value.getAttribute('data-item');
+			query+=('&items[]='+itemId);
+		});
+		return query;
+	};
 
-			//Send Request
-			document.getElementsByTagName('head')[0].appendChild(script);
-			// or document.head.appendChild(script) in modern browsers
+	//Make our inital request
+	(function makeBcInitRequest(){
 
+		var script = document.createElement('script');
+		script.src = '//bettercontext.com'+bcQuery();
 
-		var mockData = {
-			"labels": ["Eating", "Drinking", "Sleeping", "Designing", "Coding"],
-			"2": {
-				"m1": 4,
-				"m2": 6,
-				"m3": 3,
-				"m4": 5,
-				"m5": 2,
-				"total":433
-			},
-			"33": {
-				"m1": 9,
-				"m2": 2,
-				"m3": 7,
-				"m4": 8,
-				"m5": 5,
-				"total":123
-			},
-			"6": {
-				"m1": 9,
-				"m2": 2,
-				"m3": 8,
-				"m4": 1,
-				"m5": 7,
-				"total":942
-			}
-		};
+		//Send Request
+		document.getElementsByTagName('head')[0].appendChild(script);
+		// or document.head.appendChild(script) in modern browsers
 
-		function bcDataMorph(originalData, bcLabels){
-			return {
-						labels: bcLabels,
-						datasets: [
-							{
-								label: "My Second dataset",
-								fillColor: "rgba(251,185,605,0.2)",
-								strokeColor: "rgba(151,187,205,1)",
-								pointColor: "rgba(151,187,205,1)",
-								pointStrokeColor: "#fff",
-								pointHighlightFill: "#fff",
-								pointHighlightStroke: "rgba(151,187,205,1)",
-								data: [
-										originalData["m1"],
-										originalData["m2"],
-										originalData["m3"],
-										originalData["m4"],
-										originalData["m5"]
-										]
-							}
-						]
-					}
+	})();
+
+	var mockData = {
+		"labels": ["Eating", "Drinking", "Sleeping", "Designing", "Coding"],
+		"2": {
+			"m1": 4,
+			"m2": 6,
+			"m3": 3,
+			"m4": 5,
+			"m5": 2,
+			"total":433
+		},
+		"33": {
+			"m1": 9,
+			"m2": 2,
+			"m3": 7,
+			"m4": 8,
+			"m5": 5,
+			"total":123
+		},
+		"6": {
+			"m1": 9,
+			"m2": 2,
+			"m3": 8,
+			"m4": 1,
+			"m5": 7,
+			"total":942
 		}
+	};
 
-		//JSONP, RESPONSE HANDLER
-		function initBcCharts(bcMultiDataSets) {
-
-			//Iterate the charts, and create new bc charts
-			//for each instance
-			Chart.helpers.each(allCharts, function(value, index){
-				//Get the bc item id of the current chart
-				var bcItemId = value.getAttribute('data-item');
-
-				//Morph the data sent from bc, create the dataset to be used
-				//making this new chart
-				var bcDataSet = bcDataMorph(bcMultiDataSets[bcItemId], bcMultiDataSets["labels"]);
-
-				//Make the chart
-				Chart.helpers.bcCharts['bcId-'+index] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(bcDataSet, {
-					responsive: true
-				});
-
-				//Set bc item id, as well as the chart id, for self reference in bcCharts
-				Chart.helpers.bcCharts['bcId-'+index].bcItemId = bcItemId;
-				Chart.helpers.bcCharts['bcId-'+index].bcId = 'bcId-'+index;
-			});
-		}
-
-		//THIS IS THE PRETEND JSON P RESPONSE
-		//REMOVE WHEN REAL JSON P RESPONSE EXISTS
-		initBcCharts(mockData);
-
+	function bcDataMorph(originalData, bcLabels){
+		return {
+					labels: bcLabels,
+					datasets: [
+						{
+							label: "My Second dataset",
+							fillColor: "rgba(251,185,605,0.2)",
+							strokeColor: "rgba(151,187,205,1)",
+							pointColor: "rgba(151,187,205,1)",
+							pointStrokeColor: "#fff",
+							pointHighlightFill: "#fff",
+							pointHighlightStroke: "rgba(151,187,205,1)",
+							data: [
+									originalData["m1"],
+									originalData["m2"],
+									originalData["m3"],
+									originalData["m4"],
+									originalData["m5"]
+									]
+						}
+					]
+				}
 	}
+
+
+	//JSONP, RESPONSE HANDLER
+	window.initBcCharts = function initBcCharts(bcMultiDataSets) {
+
+		//Iterate the charts, and create new bc charts
+		//for each instance
+		Chart.helpers.each(allCharts, function(value, index){
+			//Get the bc item id of the current chart
+			var bcItemId = value.getAttribute('data-item');
+
+			//Morph the data sent from bc, create the dataset to be used
+			//making this new chart
+			var bcDataSet = bcDataMorph(bcMultiDataSets[bcItemId], bcMultiDataSets["labels"]);
+
+			//Make the chart
+			Chart.helpers.bcCharts['bcId-'+index] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(bcDataSet, {
+				responsive: true
+			});
+
+			//Set bc item id, as well as the chart id, for self reference in bcCharts
+			Chart.helpers.bcCharts['bcId-'+index].bcItemId = bcItemId;
+			Chart.helpers.bcCharts['bcId-'+index].bcId = 'bcId-'+index;
+		});
+	}
+
+	//THIS IS THE PRETEND JSON P RESPONSE
+	//REMOVE WHEN REAL JSON P RESPONSE EXISTS
+	initBcCharts(mockData);
+
+}
