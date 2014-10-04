@@ -452,11 +452,14 @@ window.onload = function(){
 	//request with
 	var bcQuery = function(){
 		var siteId = document.getElementById('bctxtScript').getAttribute('data-account');
-		var query = '/api/item_ratings/get/average_and_count?site_id='+siteId;
+		http://www.bettercontext.com/api/item_ratings/get/rating?site_id=1&item_id=1
+		//var query = '/api/item_ratings/get/average_and_count?site_id='+siteId;
+		var query = '/api/item_ratings/get/rating?site_id='+siteId;
 		Chart.helpers.each(allCharts, function(value, index){
 			//Get the bc item id of the current chart
 			var itemId = value.getAttribute('data-item');
-			query+=('&items[]='+itemId);
+			//query+=('&items[]='+itemId);
+			query+=('&item_id='+itemId);
 		});
 		return query;
 	};
