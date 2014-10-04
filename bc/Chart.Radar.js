@@ -345,7 +345,9 @@ Chart.types.Radar.extend({
 	initialize: function(data){
 		var me = this;
 		me.mouseDown = 0;
-		me.activePoint;
+		me.activePoint; //Clicked point
+		me.ratingCounter = 0; //This is used to track how many items have received a new rating
+		me.singleValueTimer; //We use this to see if we should send a request to BC after a single item is updated
 
 		//Update the chart if we have
 		//a selected point
@@ -368,14 +370,44 @@ Chart.types.Radar.extend({
 				else {
 					me.activePoint[0].value = newVal;
 				}
+				//Update stored metric value for request
+				me.labels[me.activePoint[0].label].metricValue = newVal.toFixed(2);
 				me.update();
 			}
+		}
+
+		//This is to keep track of if all 5 metrics have been set
+		//Used for requests
+		function checkMetrics(label) {
+			if (!me.labels[label].updated) {
+				me.labels[label].updated = 1;
+				me.ratingCounter++;
+			}
+
+			if (me.ratingCounter === 5){
+				console.log('got em all!');
+			} else {
+				window.clearTimeout(me.singleValueTimer);
+				me.singleValueTimer = setTimeout(function(){
+					console.log('sending whatever is updated');
+				}, 3000);
+			}
+
+			console.log(me.labels[label]);
+
+			//TODO
+			//Fade in check mark animation
+			//for sending rating to server
+			//
+			//Send update request to BC, blink
+			//tiny green solid shape in center if ok
+			//blink red if not saved
 		}
 
 		//Returns the better context
 		//local chart id, which matches
 		//the key in bcCharts
-		function whichChart(){
+		function whichChart() {
 			return me.bcId;
 		}
 
@@ -391,6 +423,9 @@ Chart.types.Radar.extend({
 			me.mouseDown--;
 			me.options.animation = true;
 			reDraw(e);
+			if (me.activePoint[0]) {
+				checkMetrics(me.activePoint[0].label);
+			}
 			me.activePoint = undefined;
 		}
 		me.chart.canvas.onmousemove = function(e) {
@@ -399,7 +434,7 @@ Chart.types.Radar.extend({
 				reDraw(e);
 			}
 		}
-		Chart.types.Radar.prototype.initialize.apply(this, arguments)
+		Chart.types.Radar.prototype.initialize.apply(this, arguments);
 	}
 });
 
@@ -512,6 +547,16 @@ window.onload = function(){
 			//Set bc item id, as well as the chart id, for self reference in bcCharts
 			Chart.helpers.bcCharts['bcId-'+index].bcItemId = bcItemId;
 			Chart.helpers.bcCharts['bcId-'+index].bcId = 'bcId-'+index;
+
+			//Set the labels on the chart
+			Chart.helpers.bcCharts['bcId-'+index].labels = {};
+			Chart.helpers.each(bcMultiDataSets["labels"], function(label, idx){
+				Chart.helpers.bcCharts['bcId-'+index].labels[label] = {};
+				Chart.helpers.bcCharts['bcId-'+index].labels[label].updated = 0;
+				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricPos = 'm'+(idx+1);
+				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricValue = null;
+			});
+
 		});
 	}
 
