@@ -333,6 +333,12 @@
 
 }).call(this);
 
+//This is the BC API, these
+//are the callbacks that sites can use
+Chart.helpers.BCAPI = {
+	itemSaved: false
+};
+
 Chart.types.Radar.extend({
 	name:'BetterContext',
 	defaults: {
@@ -348,6 +354,12 @@ Chart.types.Radar.extend({
 		me.activePoint; //Clicked point
 		me.ratingCounter = 0; //This is used to track how many items have received a new rating
 		me.singleValueTimer; //We use this to see if we should send a request to BC after a single item is updated
+
+		me.renderSaveImg = function() {
+			(function() {
+				me.chart.ctx.drawImage(me.saveIcon, (me.scale.xCenter-35), (me.scale.yCenter-35), 70, 70);
+			})();
+		};
 
 		//Update the chart if we have
 		//a selected point
@@ -372,6 +384,7 @@ Chart.types.Radar.extend({
 				}
 				//Update stored metric value for request
 				me.labels[me.activePoint[0].label].metricValue = newVal.toFixed(2);
+
 				me.update();
 			}
 		}
@@ -390,6 +403,10 @@ Chart.types.Radar.extend({
 				window.clearTimeout(me.singleValueTimer);
 				me.singleValueTimer = setTimeout(function(){
 					console.log('sending whatever is updated');
+					me.renderSaveImg();
+					if (Chart.helpers.BCAPI.itemSaved) {
+						window.bcItemSaved();
+					}
 				}, 3000);
 			}
 
@@ -442,6 +459,12 @@ Chart.types.Radar.extend({
 //Get data
 window.onload = function(){
 
+	(function initializeBctxtApi(){
+		if (window.bcItemSaved) {
+			Chart.helpers.BCAPI.itemSaved = true;
+		}
+	})();
+
 	//All charts on the page
 	var allCharts = document.getElementsByClassName('bc_chart');
 
@@ -476,34 +499,6 @@ window.onload = function(){
 
 	})();
 
-	var mockData = {
-		"labels": ["Eating", "Drinking", "Sleeping", "Designing", "Coding"],
-		"2": {
-			"m1": 4,
-			"m2": 6,
-			"m3": 3,
-			"m4": 5,
-			"m5": 2,
-			"total":433
-		},
-		"33": {
-			"m1": 9,
-			"m2": 2,
-			"m3": 7,
-			"m4": 8,
-			"m5": 5,
-			"total":123
-		},
-		"6": {
-			"m1": 9,
-			"m2": 2,
-			"m3": 8,
-			"m4": 1,
-			"m5": 7,
-			"total":942
-		}
-	};
-
 	function bcDataMorph(originalData, bcLabels){
 		return {
 					labels: bcLabels,
@@ -517,11 +512,11 @@ window.onload = function(){
 							pointHighlightFill: "#fff",
 							pointHighlightStroke: "rgba(151,187,205,1)",
 							data: [
-									originalData["m1"],
-									originalData["m2"],
-									originalData["m3"],
-									originalData["m4"],
-									originalData["m5"]
+									parseFloat(originalData["m1"]),
+									parseFloat(originalData["m2"]),
+									parseFloat(originalData["m3"]),
+									parseFloat(originalData["m4"]),
+									parseFloat(originalData["m5"])
 									]
 						}
 					]
@@ -553,6 +548,8 @@ window.onload = function(){
 
 			//Set the labels on the chart
 			Chart.helpers.bcCharts['bcId-'+index].labels = {};
+			Chart.helpers.bcCharts['bcId-'+index].saveIcon = new Image();
+			Chart.helpers.bcCharts['bcId-'+index].saveIcon.src = 'http://get.bettercontext.com/saved.png';
 			Chart.helpers.each(bcMultiDataSets["labels"], function(label, idx){
 				Chart.helpers.bcCharts['bcId-'+index].labels[label] = {};
 				Chart.helpers.bcCharts['bcId-'+index].labels[label].updated = 0;
@@ -562,9 +559,5 @@ window.onload = function(){
 
 		});
 	}
-
-	//THIS IS THE PRETEND JSON P RESPONSE
-	//REMOVE WHEN REAL JSON P RESPONSE EXISTS
-	initBcCharts(mockData);
 
 }
