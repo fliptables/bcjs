@@ -405,7 +405,7 @@ Chart.types.Radar.extend({
 					console.log('sending whatever is updated');
 					me.renderSaveImg();
 					if (Chart.helpers.BCAPI.itemSaved) {
-						window.bcItemSaved();
+						window.bcItemSaved(me.chart.canvas);
 					}
 				}, 3000);
 			}
