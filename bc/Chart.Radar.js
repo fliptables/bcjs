@@ -352,10 +352,11 @@ Chart.types.Radar.extend({
 		var me = this;
 		me.mouseDown = 0;
 		me.activePoint; //Clicked point
-		me.ratingCounter = 0; //This is used to track how many items have received a new rating
 		me.singleValueTimer; //We use this to see if we should send a request to BC after a single item is updated
 
-		me.renderSaveImg = function() {
+		//Declared here for reference to chart instance... might not work with
+		//multi charts
+		Chart.helpers.renderSaveImg = function() {
 			(function() {
 				me.chart.ctx.drawImage(me.saveIcon, (me.scale.xCenter-35), (me.scale.yCenter-35), 70, 70);
 			})();
@@ -389,39 +390,20 @@ Chart.types.Radar.extend({
 			}
 		}
 
-		//This is to keep track of if all 5 metrics have been set
-		//Used for requests
-		function checkMetrics(label) {
-			if (!me.labels[label].updated) {
-				me.labels[label].updated = 1;
-				me.ratingCounter++;
-			}
-
-			if (me.ratingCounter === 5){
-				console.log('got em all!');
-			} else {
-				window.clearTimeout(me.singleValueTimer);
-				me.singleValueTimer = setTimeout(function(){
-					sendUpdate();
-					console.log('sending whatever is updated');
-					me.renderSaveImg();
-					if (Chart.helpers.BCAPI.itemSaved) {
-						window.bcItemSaved(me.chart.canvas);
-					}
-				}, 3000);
-			}
-
-			console.log(me.labels[label]);
-
-			//TODO
-			//Fade in check mark animation
-			//for sending rating to server
-			//
-			//Send update request to BC, blink
-			//tiny green solid shape in center if ok
-			//blink red if not saved
+		//Giving the user 3 seconds to take another
+		//action before we send data to BC
+		function startBcUpdate(label) {
+			//Reset timer every time an click occurs
+			window.clearTimeout(me.singleValueTimer);
+			me.singleValueTimer = setTimeout(function(){
+				sendUpdate();
+				if (Chart.helpers.BCAPI.itemSaved) {
+					window.bcItemSaved(me.chart.canvas);
+				}
+			}, 3000);
 		}
 
+		//Ajax request to BC, posting an update to the user rating
 		function sendUpdate(){
 			var params = 'site_id='+Chart.helpers.siteId+'&item_id='+me.bcItemId+'&user_id='+Chart.helpers.currentUser;
 			Chart.helpers.each(me.labels, function(value){
@@ -430,10 +412,12 @@ Chart.types.Radar.extend({
 			var postUrl = '//www.bettercontext.com/api/user_ratings';
 			var request = new XMLHttpRequest();
 			request.open('POST', postUrl, true);
-			request.onreadystatechange = function() {if (request.readyState==4) console.log("It worked!");};
+			request.onreadystatechange = function() {
+				if (request.readyState==4) {
+					Chart.helpers.renderSaveImg();
+				}
+			};
 			request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-			request.setRequestHeader("Content-length", params.length);
-			request.setRequestHeader("Connection", "close");
 			request.send(params);
 		}
 
@@ -456,9 +440,7 @@ Chart.types.Radar.extend({
 			me.mouseDown--;
 			me.options.animation = true;
 			reDraw(e);
-			if (me.activePoint[0]) {
-				checkMetrics(me.activePoint[0].label);
-			}
+			startBcUpdate();
 			me.activePoint = undefined;
 		}
 		me.chart.canvas.onmousemove = function(e) {
@@ -475,6 +457,7 @@ Chart.types.Radar.extend({
 //Get data
 window.onload = function(){
 
+	//Checking if the page utilizes the API
 	(function initializeBctxtApi(){
 		if (window.bcItemSaved) {
 			Chart.helpers.BCAPI.itemSaved = true;
@@ -574,7 +557,6 @@ window.onload = function(){
 			Chart.helpers.bcCharts['bcId-'+index].saveIcon.src = 'http://get.bettercontext.com/saved.png';
 			Chart.helpers.each(bcMultiDataSets["labels"], function(label, idx){
 				Chart.helpers.bcCharts['bcId-'+index].labels[label] = {};
-				Chart.helpers.bcCharts['bcId-'+index].labels[label].updated = 0;
 				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricPos = 'm'+(idx+1);
 				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricValue = bcDataSet.datasets[0].data[idx];
 			});
