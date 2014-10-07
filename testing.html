@@ -17,7 +17,7 @@
 	<body>
 		<!-- CHANGE THIS WIDTH FOR MOBILE-->
 		<div style="width:30%">
-			<canvas class="bc_chart" id="mychrt" data-item="1" height="450" width="450" style="cursor:pointer;"></canvas>
+			<canvas class="bc_chart" id="mychrt" data-item="1" data-user="1" height="450" width="450" style="cursor:pointer;"></canvas>
 		</div>
 
 		<!-- interacting with BC API-->
@@ -25,7 +25,7 @@
 			window.bcItemSaved = function(chart){
 				console.log(chart);
 				var thing = document.getElementById(chart.id);
-				thing.style.border = '5px solid red';
+				thing.style.borderBottom = '5px solid red';
 				console.log('ya pooper!')
 			};
 		</script>

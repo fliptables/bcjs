@@ -402,6 +402,7 @@ Chart.types.Radar.extend({
 			} else {
 				window.clearTimeout(me.singleValueTimer);
 				me.singleValueTimer = setTimeout(function(){
+					sendUpdate();
 					console.log('sending whatever is updated');
 					me.renderSaveImg();
 					if (Chart.helpers.BCAPI.itemSaved) {
@@ -419,6 +420,21 @@ Chart.types.Radar.extend({
 			//Send update request to BC, blink
 			//tiny green solid shape in center if ok
 			//blink red if not saved
+		}
+
+		function sendUpdate(){
+			var params = 'site_id='+Chart.helpers.siteId+'&item_id='+me.bcItemId+'&user_id='+Chart.helpers.currentUser;
+			Chart.helpers.each(me.labels, function(value){
+				params += '&rating[]='+value.metricValue;
+			});
+			var postUrl = '//www.bettercontext.com/api/user_ratings';
+			var request = new XMLHttpRequest();
+			request.open('POST', postUrl, true);
+			request.onreadystatechange = function() {if (request.readyState==4) console.log("It worked!");};
+			request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+			request.setRequestHeader("Content-length", params.length);
+			request.setRequestHeader("Connection", "close");
+			request.send(params);
 		}
 
 		//Returns the better context
@@ -474,10 +490,12 @@ window.onload = function(){
 	//Create the query we're going to make our JSONP
 	//request with
 	var bcQuery = function(){
-		var siteId = document.getElementById('bctxtScript').getAttribute('data-account');
+		if (!Chart.helpers.siteId) {
+			Chart.helpers.siteId = document.getElementById('bctxtScript').getAttribute('data-account');
+		}
 		http://www.bettercontext.com/api/item_ratings/get/rating?site_id=1&item_id=1
 		//var query = '/api/item_ratings/get/average_and_count?site_id='+siteId;
-		var query = '/api/item_ratings/get/rating?site_id='+siteId;
+		var query = '/api/item_ratings/get/rating?site_id='+Chart.helpers.siteId;
 		Chart.helpers.each(allCharts, function(value, index){
 			//Get the bc item id of the current chart
 			var itemId = value.getAttribute('data-item');
@@ -533,6 +551,10 @@ window.onload = function(){
 			//Get the bc item id of the current chart
 			var bcItemId = value.getAttribute('data-item');
 
+			if (!Chart.helpers.currentUser) {
+				Chart.helpers.currentUser = value.getAttribute('data-user');
+			}
+
 			//Morph the data sent from bc, create the dataset to be used
 			//making this new chart
 			var bcDataSet = bcDataMorph(bcMultiDataSets[bcItemId], bcMultiDataSets["labels"]);
@@ -554,7 +576,7 @@ window.onload = function(){
 				Chart.helpers.bcCharts['bcId-'+index].labels[label] = {};
 				Chart.helpers.bcCharts['bcId-'+index].labels[label].updated = 0;
 				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricPos = 'm'+(idx+1);
-				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricValue = null;
+				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricValue = bcDataSet.datasets[0].data[idx];
 			});
 
 		});
