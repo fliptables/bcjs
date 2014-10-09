@@ -405,20 +405,22 @@ Chart.types.Radar.extend({
 
 		//Ajax request to BC, posting an update to the user rating
 		function sendUpdate(){
-			var params = 'site_id='+Chart.helpers.siteId+'&item_id='+me.bcItemId+'&user_id='+Chart.helpers.currentUser;
-			Chart.helpers.each(me.labels, function(value){
-				params += '&rating[]='+value.metricValue;
-			});
-			var postUrl = '//www.bettercontext.com/api/user_ratings';
-			var request = new XMLHttpRequest();
-			request.open('POST', postUrl, true);
-			request.onreadystatechange = function() {
-				if (request.readyState==4) {
-					Chart.helpers.renderSaveImg();
-				}
-			};
-			request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-			request.send(params);
+			if (Chart.helpers.currentUser) {
+				var params = 'site_id='+Chart.helpers.siteId+'&item_id='+me.bcItemId+'&user_id='+Chart.helpers.currentUser;
+				Chart.helpers.each(me.labels, function(value){
+					params += '&rating[]='+value.metricValue;
+				});
+				var postUrl = '//www.bettercontext.com/api/user_ratings';
+				var request = new XMLHttpRequest();
+				request.open('POST', postUrl, true);
+				request.onreadystatechange = function() {
+					if (request.readyState==4) {
+						Chart.helpers.renderSaveImg();
+					}
+				};
+				request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				request.send(params);
+			}
 		}
 
 		//Returns the better context
@@ -431,19 +433,21 @@ Chart.types.Radar.extend({
 		//Event listeners
 		me.chart.canvas.onmousedown = function(e) {
 			me.mouseDown++;
-			var selectedChart = {};
-			var closePoints;
+			if (Chart.helpers.currentUser) {
+				var selectedChart = {};
+				var closePoints;
 
-			selectedChart = Chart.helpers.bcCharts[whichChart()];
-			closePoints = selectedChart.getPointsAtEvent(e);
+				selectedChart = Chart.helpers.bcCharts[whichChart()];
+				closePoints = selectedChart.getPointsAtEvent(e);
 
-			Chart.helpers.each(closePoints, function(val) {
-				if (val.datasetLabel === "User Rating") {
-					me.activeBcPoint = val;
-				}
-			});
+				Chart.helpers.each(closePoints, function(val) {
+					if (val.datasetLabel === "User Rating") {
+						me.activeBcPoint = val;
+					}
+				});
 
-			reDraw(e);
+				reDraw(e);
+			}
 		}
 		me.chart.canvas.onmouseup = function(e) {
 			me.mouseDown--;
