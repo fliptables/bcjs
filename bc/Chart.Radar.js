@@ -351,7 +351,7 @@ Chart.types.Radar.extend({
 	initialize: function(data){
 		var me = this;
 		me.mouseDown = 0;
-		me.activePoint; //Clicked point
+		me.activeBcPoint; //Clicked point
 		me.singleValueTimer; //We use this to see if we should send a request to BC after a single item is updated
 
 		//Declared here for reference to chart instance... might not work with
@@ -365,7 +365,7 @@ Chart.types.Radar.extend({
 		//Update the chart if we have
 		//a selected point
 		function reDraw(e){
-			if (me.activePoint && me.activePoint[0]){
+			if (me.activeBcPoint){
 				var scale = me.scale;
 				var x1 = scale.xCenter+me.chart.canvas.offsetLeft;
 				var y1 = scale.yCenter+me.chart.canvas.offsetTop;
@@ -375,16 +375,16 @@ Chart.types.Radar.extend({
 				var pixelPerNumber = (scale.drawingArea)/(scale.max - scale.min);
 				var newVal = (newDist/pixelPerNumber);
 				if (newVal >= 9.7) {
-					me.activePoint[0].value = 10;
+					me.activeBcPoint.value = 10;
 				}
 				else if (newVal < 0.8) {
-					me.activePoint[0].value = 0;
+					me.activeBcPoint.value = 0;
 				}
 				else {
-					me.activePoint[0].value = newVal;
+					me.activeBcPoint.value = newVal;
 				}
 				//Update stored metric value for request
-				me.labels[me.activePoint[0].label].metricValue = newVal.toFixed(2);
+				me.labels[me.activeBcPoint.label].metricValue = newVal.toFixed(2);
 
 				me.update();
 			}
@@ -431,20 +431,31 @@ Chart.types.Radar.extend({
 		//Event listeners
 		me.chart.canvas.onmousedown = function(e) {
 			me.mouseDown++;
-			var selectedChart = {}
+			var selectedChart = {};
+			var closePoints;
+
 			selectedChart = Chart.helpers.bcCharts[whichChart()];
-			me.activePoint = selectedChart.getPointsAtEvent(e);
+		  closePoints = selectedChart.getPointsAtEvent(e);
+
+			Chart.helpers.each(closePoints, function(val) {
+				if (val.datasetLabel === "User Rating") {
+					me.activeBcPoint = val;
+				}
+			});
+
 			reDraw(e);
 		}
 		me.chart.canvas.onmouseup = function(e) {
 			me.mouseDown--;
-			me.options.animation = true;
-			reDraw(e);
-			startBcUpdate();
-			me.activePoint = undefined;
+			if (me.activeBcPoint) {
+				me.options.animation = true;
+				reDraw(e);
+				startBcUpdate();
+				me.activeBcPoint = undefined;
+			}
 		}
 		me.chart.canvas.onmousemove = function(e) {
-			if(me.mouseDown){
+			if(me.mouseDown && me.activeBcPoint){
 				me.options.animation = false;
 				reDraw(e);
 			}
@@ -501,17 +512,16 @@ window.onload = function(){
 	})();
 
 	function bcDataMorph(originalData, bcLabels){
-		return {
-					labels: bcLabels,
-					datasets: [
+		//Instantiate the datasets, with the item avg
+		var dataSets = [
 						{
-							label: "My Second dataset",
-							fillColor: "rgba(251,185,605,0.2)",
-							strokeColor: "rgba(151,187,205,1)",
-							pointColor: "rgba(151,187,205,1)",
+							label: "Item Average",
+							fillColor: "rgba(220,220,220,0.2)",
+							strokeColor: "rgba(220,220,220,1)",
+							pointColor: "rgba(220,220,220,1)",
 							pointStrokeColor: "#fff",
 							pointHighlightFill: "#fff",
-							pointHighlightStroke: "rgba(151,187,205,1)",
+							pointHighlightStroke: "rgba(220,220,220,1)",
 							data: [
 									parseFloat(originalData["m1"]),
 									parseFloat(originalData["m2"]),
@@ -520,8 +530,32 @@ window.onload = function(){
 									parseFloat(originalData["m5"])
 									]
 						}
-					]
-				}
+					];
+
+		//If there is a user rating, include it
+		if (originalData["u1"]) {
+			dataSets.push({
+				label: "User Rating",
+				fillColor: "rgba(251,185,605,0.2)",
+				strokeColor: "rgba(151,187,205,1)",
+				pointColor: "rgba(151,187,205,1)",
+				pointStrokeColor: "#fff",
+				pointHighlightFill: "#fff",
+				pointHighlightStroke: "rgba(151,187,205,1)",
+				data: [
+						parseFloat(originalData["u1"]),
+						parseFloat(originalData["u2"]),
+						parseFloat(originalData["u3"]),
+						parseFloat(originalData["u4"]),
+						parseFloat(originalData["u5"])
+						]
+			});
+		}
+
+		return {
+					labels: bcLabels,
+					datasets: dataSets
+					}
 	}
 
 
@@ -540,10 +574,10 @@ window.onload = function(){
 
 			//Morph the data sent from bc, create the dataset to be used
 			//making this new chart
-			var bcDataSet = bcDataMorph(bcMultiDataSets[bcItemId], bcMultiDataSets["labels"]);
+			var bcData = bcDataMorph(bcMultiDataSets[bcItemId], bcMultiDataSets["labels"]);
 
 			//Make the chart
-			Chart.helpers.bcCharts['bcId-'+index] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(bcDataSet, {
+			Chart.helpers.bcCharts['bcId-'+index] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(bcData, {
 				responsive: true
 			});
 
@@ -558,7 +592,7 @@ window.onload = function(){
 			Chart.helpers.each(bcMultiDataSets["labels"], function(label, idx){
 				Chart.helpers.bcCharts['bcId-'+index].labels[label] = {};
 				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricPos = 'm'+(idx+1);
-				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricValue = bcDataSet.datasets[0].data[idx];
+				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricValue = bcData.datasets[0].data[idx];
 			});
 
 		});
