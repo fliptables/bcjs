@@ -435,7 +435,7 @@ Chart.types.Radar.extend({
 			var closePoints;
 
 			selectedChart = Chart.helpers.bcCharts[whichChart()];
-		  closePoints = selectedChart.getPointsAtEvent(e);
+			closePoints = selectedChart.getPointsAtEvent(e);
 
 			Chart.helpers.each(closePoints, function(val) {
 				if (val.datasetLabel === "User Rating") {
@@ -514,48 +514,55 @@ window.onload = function(){
 	function bcDataMorph(originalData, bcLabels){
 		//Instantiate the datasets, with the item avg
 		var dataSets = [
-						{
-							label: "Item Average",
-							fillColor: "rgba(220,220,220,0.2)",
-							strokeColor: "rgba(220,220,220,1)",
-							pointColor: "rgba(220,220,220,1)",
-							pointStrokeColor: "#fff",
-							pointHighlightFill: "#fff",
-							pointHighlightStroke: "rgba(220,220,220,1)",
-							data: [
-									parseFloat(originalData["m1"]),
-									parseFloat(originalData["m2"]),
-									parseFloat(originalData["m3"]),
-									parseFloat(originalData["m4"]),
-									parseFloat(originalData["m5"])
-									]
-						}
-					];
-
-		//If there is a user rating, include it
-		if (originalData["u1"]) {
-			dataSets.push({
-				label: "User Rating",
-				fillColor: "rgba(251,185,605,0.2)",
-				strokeColor: "rgba(151,187,205,1)",
-				pointColor: "rgba(151,187,205,1)",
+			{
+				label: "Item Average",
+				fillColor: "rgba(220,220,220,0.2)",
+				strokeColor: "rgba(220,220,220,1)",
+				pointColor: "rgba(220,220,220,1)",
 				pointStrokeColor: "#fff",
 				pointHighlightFill: "#fff",
-				pointHighlightStroke: "rgba(151,187,205,1)",
+				pointHighlightStroke: "rgba(220,220,220,1)",
 				data: [
-						parseFloat(originalData["u1"]),
-						parseFloat(originalData["u2"]),
-						parseFloat(originalData["u3"]),
-						parseFloat(originalData["u4"]),
-						parseFloat(originalData["u5"])
-						]
-			});
+					parseFloat(originalData["m1"]),
+					parseFloat(originalData["m2"]),
+					parseFloat(originalData["m3"]),
+					parseFloat(originalData["m4"]),
+					parseFloat(originalData["m5"])
+					]
+			}
+		];
+
+		var userRating = {
+			label: "User Rating",
+			fillColor: "rgba(251,185,605,0.2)",
+			strokeColor: "rgba(151,187,205,1)",
+			pointColor: "rgba(151,187,205,1)",
+			pointStrokeColor: "#fff",
+			pointHighlightFill: "#fff",
+			pointHighlightStroke: "rgba(151,187,205,1)"
+		};
+
+		//If there is a user defined
+		//and a rating include it
+		//If there is no rating, set the user raitng to zeros
+		if (Chart.helpers.currentUser && originalData["u1"]) {
+			userRating.data = [
+				parseFloat(originalData["u1"]),
+				parseFloat(originalData["u2"]),
+				parseFloat(originalData["u3"]),
+				parseFloat(originalData["u4"]),
+				parseFloat(originalData["u5"])
+			];
+			dataSets.push(userRating);
+		} else if (Chart.helpers.currentUser) {
+			userRating.data = [0,0,0,0,0];
+			dataSets.push(userRating);
 		}
 
 		return {
-					labels: bcLabels,
-					datasets: dataSets
-					}
+			labels: bcLabels,
+			datasets: dataSets
+		}
 	}
 
 
