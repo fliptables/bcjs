@@ -335,7 +335,7 @@
 
 //This is the BC API, these
 //are the callbacks that sites can use
-Chart.helpers.BCAPI = {
+var BCAPI = {
 	itemSaved: false
 };
 
@@ -397,7 +397,7 @@ Chart.types.Radar.extend({
 			window.clearTimeout(me.singleValueTimer);
 			me.singleValueTimer = setTimeout(function(){
 				sendUpdate();
-				if (Chart.helpers.BCAPI.itemSaved) {
+				if (BCAPI.itemSaved) {
 					window.bcItemSaved(me.chart.canvas);
 				}
 			}, 3000);
@@ -475,12 +475,19 @@ window.onload = function(){
 	//Checking if the page utilizes the API
 	(function initializeBctxtApi(){
 		if (window.bcItemSaved) {
-			Chart.helpers.BCAPI.itemSaved = true;
+			BCAPI.itemSaved = true;
 		}
 	})();
 
 	//All charts on the page
 	var allCharts = document.getElementsByClassName('bc_chart');
+
+	//Determine current user
+	Chart.helpers.each(allCharts, function(val) {
+		if (!Chart.helpers.currentUser && val.getAttribute('data-user')) {
+			Chart.helpers.currentUser = val.getAttribute('data-user');
+		}
+	});
 
 	//Create a helper to store all the charts owned by bc
 	Chart.helpers.bcCharts = {};
@@ -578,10 +585,6 @@ window.onload = function(){
 		Chart.helpers.each(allCharts, function(value, index){
 			//Get the bc item id of the current chart
 			var bcItemId = value.getAttribute('data-item');
-
-			if (!Chart.helpers.currentUser) {
-				Chart.helpers.currentUser = value.getAttribute('data-user');
-			}
 
 			//Morph the data sent from bc, create the dataset to be used
 			//making this new chart
