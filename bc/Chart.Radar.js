@@ -343,6 +343,7 @@ Chart.types.Radar.extend({
 	name:'BetterContext',
 	defaults: {
 		tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value.toFixed(1) %>",
+		multiTooltipTemplate: "<%= value.toFixed(1) %>",
 		scaleOverride: true,
 		scaleSteps: 10,
 		scaleStepWidth: 1,
