@@ -606,7 +606,6 @@ window.onload = function(){
 				Chart.helpers.bcCharts['bcId-'+index].saveIcon = new Image();
 				Chart.helpers.bcCharts['bcId-'+index].saveIcon.src = 'http://get.bettercontext.com/saved.png';
 				Chart.helpers.each(bcMultiDataSets["labels"], function(label, idx){
-					console.log(label);
 					Chart.helpers.bcCharts['bcId-'+index].labels[label] = {};
 					Chart.helpers.bcCharts['bcId-'+index].labels[label].metricPos = 'm'+(idx+1);
 					Chart.helpers.bcCharts['bcId-'+index].labels[label].metricValue = bcData.datasets[1].data[idx];
