@@ -377,9 +377,11 @@ Chart.types.Radar.extend({
 				var newVal = (newDist/pixelPerNumber);
 				if (newVal >= 9.7) {
 					me.activeBcPoint.value = 10;
+					newVal = 10;
 				}
 				else if (newVal < 0.8) {
 					me.activeBcPoint.value = 0;
+					newVal = 0;
 				}
 				else {
 					me.activeBcPoint.value = newVal;
