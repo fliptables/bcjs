@@ -501,7 +501,7 @@ window.onload = function(){
 		}
 		var query = '/api/item_ratings?site_id='+Chart.helpers.siteId;
 		if (Chart.helpers.currentUser) {
-			query+=('&users[]'+Chart.helpers.currentUser);
+			query+=('&user_id='+Chart.helpers.currentUser);
 		}
 		Chart.helpers.each(allCharts, function(value, index){
 			//Get the bc item id of the current chart
