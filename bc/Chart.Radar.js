@@ -499,14 +499,14 @@ window.onload = function(){
 		if (!Chart.helpers.siteId) {
 			Chart.helpers.siteId = document.getElementById('bctxtScript').getAttribute('data-account');
 		}
-		http://www.bettercontext.com/api/item_ratings/get/rating?site_id=1&item_id=1
-		//var query = '/api/item_ratings/get/average_and_count?site_id='+siteId;
-		var query = '/api/item_ratings/get/rating?site_id='+Chart.helpers.siteId;
+		var query = '/api/item_ratings?site_id='+Chart.helpers.siteId;
+		if (Chart.helpers.currentUser) {
+			query+=('&users[]'+Chart.helpers.currentUser);
+		}
 		Chart.helpers.each(allCharts, function(value, index){
 			//Get the bc item id of the current chart
 			var itemId = value.getAttribute('data-item');
-			//query+=('&items[]='+itemId);
-			query+=('&item_id='+itemId);
+			query+=('&items[]='+itemId);
 		});
 		return query;
 	};
