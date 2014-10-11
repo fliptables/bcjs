@@ -357,7 +357,7 @@ Chart.types.Radar.extend({
 
 		//Declared here for reference to chart instance... might not work with
 		//multi charts
-		Chart.helpers.renderSaveImg = function() {
+		me.renderSaveImg = function() {
 			(function() {
 				me.chart.ctx.drawImage(me.saveIcon, (me.scale.xCenter-35), (me.scale.yCenter-35), 70, 70);
 			})();
@@ -418,7 +418,7 @@ Chart.types.Radar.extend({
 				request.open('POST', postUrl, true);
 				request.onreadystatechange = function() {
 					if (request.readyState==4) {
-						Chart.helpers.renderSaveImg();
+						me.renderSaveImg();
 					}
 				};
 				request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
