@@ -2414,12 +2414,127 @@ Chart.types.Radar.extend({
 	}
 });
 
+//////////////////////////////////////
+//BC HELPERS
+/////////////////////////////////////
+
+//DATAMORPHER
+//This thing will take data from BC, and make it useable for the charts
+Chart.helpers.bcDataMorph = function bcDataMorph(originalData, bcLabels){
+	//Instantiate the datasets, with the item avg
+	var dataSets = [
+		{
+			label: "Item Average",
+			fillColor: "rgba(220,220,220,0.2)",
+			strokeColor: "rgba(220,220,220,1)",
+			pointColor: "rgba(220,220,220,1)",
+			pointStrokeColor: "#fff",
+			pointHighlightFill: "#fff",
+			pointHighlightStroke: "rgba(220,220,220,1)",
+			data: [
+				parseFloat(originalData["m1"]),
+				parseFloat(originalData["m2"]),
+				parseFloat(originalData["m3"]),
+				parseFloat(originalData["m4"]),
+				parseFloat(originalData["m5"])
+				]
+		}
+	];
+
+	var userRating = {
+		label: "User Rating",
+		fillColor: "rgba(251,185,605,0.2)",
+		strokeColor: "rgba(151,187,205,1)",
+		pointColor: "rgba(151,187,205,1)",
+		pointStrokeColor: "#fff",
+		pointHighlightFill: "#fff",
+		pointHighlightStroke: "rgba(151,187,205,1)"
+	};
+
+	//If there is a user defined
+	//and a rating include it
+	//If there is no rating, set the user raitng to zeros
+	if (Chart.helpers.currentUser && originalData["u1"]) {
+		userRating.data = [
+			parseFloat(originalData["u1"]),
+			parseFloat(originalData["u2"]),
+			parseFloat(originalData["u3"]),
+			parseFloat(originalData["u4"]),
+			parseFloat(originalData["u5"])
+		];
+		dataSets.push(userRating);
+	} else if (Chart.helpers.currentUser) {
+		userRating.data = [0,0,0,0,0];
+		dataSets.push(userRating);
+	}
+
+	return {
+		labels: bcLabels,
+		datasets: dataSets
+	}
+}
+
+
+//This function is called by the JSONP request
+//and the reloadBC fn, its used to init charts
+//which just received their data
+Chart.helpers.initBcCharts = window.initBcCharts = function initBcCharts(bcMultiDataSets, chartsToInit) {
+
+	if (!chartsToInit){
+		//All charts on the page
+		var chartsToInit = document.getElementsByClassName('bc_chart');
+		var currentChartCount = 0;
+	} else {
+		var currentChartCount = Object.keys(Chart.helpers.bcCharts).length;
+	}
+	console.log(chartsToInit);
+
+	//Iterate the charts, and create new bc charts
+	//for each instance
+	Chart.helpers.each(chartsToInit, function(value, index){
+
+		index = index + currentChartCount;
+
+		//Get the bc item id of the current chart
+		var bcItemId = value.getAttribute('data-item');
+
+		console.log('index: '+index);
+		console.log('bcid: '+index);
+
+		//Morph the data sent from bc, create the dataset to be used
+		//making this new chart
+		var bcData = Chart.helpers.bcDataMorph(bcMultiDataSets[bcItemId], bcMultiDataSets["labels"]);
+
+		//Make the chart
+		Chart.helpers.bcCharts['bcId-'+index] = new Chart(value.getContext("2d")).BetterContext(bcData, {
+			responsive: true
+		});
+
+		//Set bc item id, as well as the chart id, for self reference in bcCharts
+		Chart.helpers.bcCharts['bcId-'+index].bcItemId = bcItemId;
+		Chart.helpers.bcCharts['bcId-'+index].bcId = 'bcId-'+index;
+
+		//Set the labels on the chart
+		if (Chart.helpers.currentUser) {
+			Chart.helpers.bcCharts['bcId-'+index].labels = {};
+			Chart.helpers.bcCharts['bcId-'+index].saveIcon = new Image();
+			Chart.helpers.bcCharts['bcId-'+index].saveIcon.src = 'http://get.bettercontext.com/saved.png';
+			Chart.helpers.each(bcMultiDataSets["labels"], function(label, idx){
+				Chart.helpers.bcCharts['bcId-'+index].labels[label] = {};
+				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricPos = 'm'+(idx+1);
+				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricValue = bcData.datasets[1].data[idx];
+			});
+		}
+
+	});
+}
 
 BCAPI.reload = window.bcReload= function reloadBC() {
 
 	//All charts on the page
 	var allCharts = document.getElementsByClassName('bc_chart');
 	var newChartIds = [];
+	var newCharts = [];
 
 	//Clean chart list
 	Chart.helpers.each(allCharts, function(c){
@@ -2432,13 +2547,10 @@ BCAPI.reload = window.bcReload= function reloadBC() {
 		});
 		if (!existing) {
 			newChartIds.push(id);
+			newCharts.push(c);
 		}
 	});
 
-
-	var currentChartCount = Object.keys(Chart.helpers.bcCharts).length-1;
-
-	console.log(newChartIds);
 
 	//Create the query we're going to make our JSONP
 	//request with
@@ -2462,13 +2574,12 @@ BCAPI.reload = window.bcReload= function reloadBC() {
 		var xhr = new XMLHttpRequest();
 		xhr.onreadystatechange = function() {
 				if (xhr.readyState == 4) {
-						console.log(xhr.responseText);
+						Chart.helpers.initBcCharts(xhr.responseText, newCharts);
 				}
 		}
-		xhr.open('GET', '//bettercontext.com'+bcQuery(), true);
-		xhr.send(null);
+		xhr.open('GET', '//www.bettercontext.com'+bcQuery(), true);
+		xhr.send();
 	})();
-
 
 
 };
@@ -2526,97 +2637,5 @@ window.onload = function(){
 		// or document.head.appendChild(script) in modern browsers
 
 	})();
-
-	function bcDataMorph(originalData, bcLabels){
-		//Instantiate the datasets, with the item avg
-		var dataSets = [
-			{
-				label: "Item Average",
-				fillColor: "rgba(220,220,220,0.2)",
-				strokeColor: "rgba(220,220,220,1)",
-				pointColor: "rgba(220,220,220,1)",
-				pointStrokeColor: "#fff",
-				pointHighlightFill: "#fff",
-				pointHighlightStroke: "rgba(220,220,220,1)",
-				data: [
-					parseFloat(originalData["m1"]),
-					parseFloat(originalData["m2"]),
-					parseFloat(originalData["m3"]),
-					parseFloat(originalData["m4"]),
-					parseFloat(originalData["m5"])
-					]
-			}
-		];
-
-		var userRating = {
-			label: "User Rating",
-			fillColor: "rgba(251,185,605,0.2)",
-			strokeColor: "rgba(151,187,205,1)",
-			pointColor: "rgba(151,187,205,1)",
-			pointStrokeColor: "#fff",
-			pointHighlightFill: "#fff",
-			pointHighlightStroke: "rgba(151,187,205,1)"
-		};
-
-		//If there is a user defined
-		//and a rating include it
-		//If there is no rating, set the user raitng to zeros
-		if (Chart.helpers.currentUser && originalData["u1"]) {
-			userRating.data = [
-				parseFloat(originalData["u1"]),
-				parseFloat(originalData["u2"]),
-				parseFloat(originalData["u3"]),
-				parseFloat(originalData["u4"]),
-				parseFloat(originalData["u5"])
-			];
-			dataSets.push(userRating);
-		} else if (Chart.helpers.currentUser) {
-			userRating.data = [0,0,0,0,0];
-			dataSets.push(userRating);
-		}
-
-		return {
-			labels: bcLabels,
-			datasets: dataSets
-		}
-	}
-
-
-	//JSONP, RESPONSE HANDLER
-	window.initBcCharts = function initBcCharts(bcMultiDataSets) {
-
-		//Iterate the charts, and create new bc charts
-		//for each instance
-		Chart.helpers.each(allCharts, function(value, index){
-			//Get the bc item id of the current chart
-			var bcItemId = value.getAttribute('data-item');
-
-			//Morph the data sent from bc, create the dataset to be used
-			//making this new chart
-			var bcData = bcDataMorph(bcMultiDataSets[bcItemId], bcMultiDataSets["labels"]);
-
-			//Make the chart
-			Chart.helpers.bcCharts['bcId-'+index] = new Chart(document.getElementsByClassName('bc_chart')[index].getContext("2d")).BetterContext(bcData, {
-				responsive: true
-			});
-
-			//Set bc item id, as well as the chart id, for self reference in bcCharts
-			Chart.helpers.bcCharts['bcId-'+index].bcItemId = bcItemId;
-			Chart.helpers.bcCharts['bcId-'+index].bcId = 'bcId-'+index;
-
-			//Set the labels on the chart
-			if (Chart.helpers.currentUser) {
-				Chart.helpers.bcCharts['bcId-'+index].labels = {};
-				Chart.helpers.bcCharts['bcId-'+index].saveIcon = new Image();
-				Chart.helpers.bcCharts['bcId-'+index].saveIcon.src = 'http://get.bettercontext.com/saved.png';
-				Chart.helpers.each(bcMultiDataSets["labels"], function(label, idx){
-					Chart.helpers.bcCharts['bcId-'+index].labels[label] = {};
-					Chart.helpers.bcCharts['bcId-'+index].labels[label].metricPos = 'm'+(idx+1);
-					Chart.helpers.bcCharts['bcId-'+index].labels[label].metricValue = bcData.datasets[1].data[idx];
-				});
-			}
-
-		});
-	}
 
 }
