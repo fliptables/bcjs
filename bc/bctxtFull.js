@@ -2487,7 +2487,6 @@ Chart.helpers.initBcCharts = window.initBcCharts = function initBcCharts(bcMulti
 	} else {
 		var currentChartCount = Object.keys(Chart.helpers.bcCharts).length;
 	}
-	console.log(chartsToInit);
 
 	//Iterate the charts, and create new bc charts
 	//for each instance
@@ -2497,9 +2496,6 @@ Chart.helpers.initBcCharts = window.initBcCharts = function initBcCharts(bcMulti
 
 		//Get the bc item id of the current chart
 		var bcItemId = value.getAttribute('data-item');
-
-		console.log('index: '+index);
-		console.log('bcid: '+index);
 
 		//Morph the data sent from bc, create the dataset to be used
 		//making this new chart
@@ -2558,7 +2554,7 @@ BCAPI.reload = window.bcReload= function reloadBC() {
 		if (!Chart.helpers.siteId) {
 			Chart.helpers.siteId = document.getElementById('bctxtScript').getAttribute('data-account');
 		}
-		var query = '/api/item_ratings/get?site_id='+Chart.helpers.siteId;
+		var query = '/api/item_ratings/get/ratings?site_id='+Chart.helpers.siteId;
 		if (Chart.helpers.currentUser) {
 			query+=('&user_id='+Chart.helpers.currentUser);
 		}
@@ -2574,7 +2570,8 @@ BCAPI.reload = window.bcReload= function reloadBC() {
 		var xhr = new XMLHttpRequest();
 		xhr.onreadystatechange = function() {
 				if (xhr.readyState == 4) {
-						Chart.helpers.initBcCharts(xhr.responseText, newCharts);
+						var parsedResponse = JSON.parse(xhr.responseText);
+						Chart.helpers.initBcCharts(parsedResponse, newCharts);
 				}
 		}
 		xhr.open('GET', '//www.bettercontext.com'+bcQuery(), true);
