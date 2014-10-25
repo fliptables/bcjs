@@ -49,7 +49,7 @@
 			scaleStartValue: null,
 
 			// String - Colour of the scale line
-			scaleLineColor: "rgba(0,0,0,.1)",
+			scaleLineColor: "red",
 
 			// Number - Pixel width of the scale line
 			scaleLineWidth: 1,
@@ -70,10 +70,10 @@
 			scaleFontFamily: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
 
 			// Number - Scale label font size in pixels
-			scaleFontSize: 12,
+			scaleFontSize: 14,
 
 			// String - Scale label font weight style
-			scaleFontStyle: "normal",
+			scaleFontStyle: "bold",
 
 			// String - Scale label font colour
 			scaleFontColor: "#666",
@@ -91,55 +91,55 @@
 			tooltipEvents: ["mousemove", "touchstart", "touchmove", "mouseout"],
 
 			// String - Tooltip background colour
-			tooltipFillColor: "rgba(0,0,0,0.8)",
+			tooltipFillColor: "rgba(0,0,0,0)",
 
 			// String - Tooltip label font declaration for the scale label
 			tooltipFontFamily: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
 
 			// Number - Tooltip label font size in pixels
-			tooltipFontSize: 14,
+			tooltipFontSize: 0,
 
 			// String - Tooltip font weight style
 			tooltipFontStyle: "normal",
 
 			// String - Tooltip label font colour
-			tooltipFontColor: "#fff",
+			tooltipFontColor: "rgba(0,0,0,0)",
 
 			// String - Tooltip title font declaration for the scale label
 			tooltipTitleFontFamily: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
 
 			// Number - Tooltip title font size in pixels
-			tooltipTitleFontSize: 14,
+			tooltipTitleFontSize: 0,
 
 			// String - Tooltip title font weight style
 			tooltipTitleFontStyle: "bold",
 
 			// String - Tooltip title font colour
-			tooltipTitleFontColor: "#fff",
+			tooltipTitleFontColor: "rgba(0,0,0,0)",
 
 			// Number - pixel width of padding around tooltip text
-			tooltipYPadding: 6,
+			tooltipYPadding: 0,
 
 			// Number - pixel width of padding around tooltip text
-			tooltipXPadding: 6,
+			tooltipXPadding: 0,
 
 			// Number - Size of the caret on the tooltip
-			tooltipCaretSize: 8,
+			tooltipCaretSize: 0,
 
 			// Number - Pixel radius of the tooltip border
-			tooltipCornerRadius: 6,
+			tooltipCornerRadius: 0,
 
 			// Number - Pixel offset from point x to tooltip edge
-			tooltipXOffset: 10,
+			tooltipXOffset: 0,
 
 			// String - Template string for single tooltips
-			tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value %>",
+			tooltipTemplate: " ",
 
 			// String - Template string for single tooltips
-			multiTooltipTemplate: "<%= value %>",
+			multiTooltipTemplate: " ",
 
 			// String - Colour behind the legend colour block
-			multiTooltipKeyBackground: '#fff',
+			multiTooltipKeyBackground: 'rgba(0,0,0,0)',
 
 			// Function - Will fire on animation progression.
 			onAnimationProgress: function(){},
@@ -1976,7 +1976,7 @@
 			pointLabelFontStyle : "normal",
 
 			//Number - Point label font size in pixels
-			pointLabelFontSize : 10,
+			pointLabelFontSize : 12,
 
 			//String - Point label font colour
 			pointLabelFontColor : "#666",
@@ -1991,7 +1991,7 @@
 			pointDotStrokeWidth : 3,
 
 			//Number - amount extra to add to the radius to cater for hit detection outside the drawn point
-			pointHitDetectionRadius : 20,
+			pointHitDetectionRadius : 10,
 
 			//Boolean - Whether to show a stroke for datasets
 			datasetStroke : true,
@@ -2278,18 +2278,53 @@
 
 //This is the BC API, these
 //are the callbacks that sites can use
-var BCAPI = {
-	itemSaved: false
+var BCAPI = window.BCAPI = {
+	itemSaved: false,
+	options: {
+		scaleLineColor: 'rgba(255,255,255,0.2)',
+		pointLabelFontFamily : "'Arial'",
+		pointLabelFontStyle : "normal",
+		pointLabelFontSize : 13,
+		pointLabelFontColor : "#fff"
+	},
+	avgShape: {
+		fillColor: "rgba(52, 73, 94,0.4)",
+		strokeColor: "rgba(41, 128, 185,0.6)",
+		pointColor: "rgba(0,0,0,0)",
+		pointStrokeColor: "rgba(0,0,0,0)",
+		pointHighlightFill: "rgba(0,0,0,0)",
+		pointHighlightStroke: "rgba(0,0,0,0)"
+	},
+	user1Shape: {
+		fillColor: "rgba(231, 76, 60,0.7)",
+		strokeColor: "rgba(241, 196, 15,1.0)",
+		pointColor: "rgba(241, 196, 15,1.0)",
+		pointStrokeColor: "rgba(236, 240, 241,1.0)",
+		pointHighlightFill: "rgba(84, 236, 206, 1)",
+		pointHighlightStroke: "rgba(22, 160, 133,1.0)"
+	},
+	user2Shape: {
+		fillColor: "rgba(220,220,220,0)",
+		strokeColor: "rgba(220,220,220,0)",
+		pointColor: "rgba(220,220,220,0)",
+		pointStrokeColor: "rgba(0,0,0,0)",
+		pointHighlightFill: "rgba(0,0,0,0)",
+		pointHighlightStroke: "rgba(220,220,220,0)"
+	}
+
 };
 
 Chart.types.Radar.extend({
 	name:'BetterContext',
 	defaults: {
-		tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value.toFixed(1) %>",
-		multiTooltipTemplate: "<%= value.toFixed(1) %>",
 		scaleOverride: true,
 		scaleSteps: 10,
 		scaleStepWidth: 1,
+		scaleLineColor: BCAPI.options.scaleLineColor,
+		pointLabelFontFamily : BCAPI.options.pointLabelFontFamily,
+		pointLabelFontStyle : BCAPI.options.pointLabelFontStyle,
+		pointLabelFontSize : BCAPI.options.pointLabelFontSize,
+		pointLabelFontColor : BCAPI.options.pointLabelFontColor,
 		scaleStartValue: 0
 	},
 	initialize: function(data){
@@ -2425,12 +2460,12 @@ Chart.helpers.bcDataMorph = function bcDataMorph(originalData, bcLabels){
 	var dataSets = [
 		{
 			label: "Item Average",
-			fillColor: "rgba(220,220,220,0.2)",
-			strokeColor: "rgba(220,220,220,1)",
-			pointColor: "rgba(220,220,220,1)",
-			pointStrokeColor: "#fff",
-			pointHighlightFill: "#fff",
-			pointHighlightStroke: "rgba(220,220,220,1)",
+			fillColor: BCAPI.avgShape.fillColor,
+			strokeColor: BCAPI.avgShape.strokeColor,
+			pointColor: BCAPI.avgShape.pointColor,
+			pointStrokeColor: BCAPI.avgShape.pointStrokeColor,
+			pointHighlightFill: BCAPI.avgShape.pointHighlightFill,
+			pointHighlightStroke: BCAPI.avgShape.pointHighlightStroke,
 			data: [
 				parseFloat(originalData["m1"]),
 				parseFloat(originalData["m2"]),
@@ -2443,12 +2478,12 @@ Chart.helpers.bcDataMorph = function bcDataMorph(originalData, bcLabels){
 
 	var userRating = {
 		label: "User Rating",
-		fillColor: "rgba(251,185,605,0.2)",
-		strokeColor: "rgba(151,187,205,1)",
-		pointColor: "rgba(151,187,205,1)",
-		pointStrokeColor: "#fff",
-		pointHighlightFill: "#fff",
-		pointHighlightStroke: "rgba(151,187,205,1)"
+		fillColor: BCAPI.user1Shape.fillColor,
+		strokeColor: BCAPI.user1Shape.strokeColor,
+		pointColor: BCAPI.user1Shape.pointColor,
+		pointStrokeColor: BCAPI.user1Shape.pointStrokeColor,
+		pointHighlightFill: BCAPI.user1Shape.pointHighlightFill,
+		pointHighlightStroke: BCAPI.user1Shape.pointHighlightStroke,
 	};
 
 	//If there is a user defined
