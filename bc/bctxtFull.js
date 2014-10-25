@@ -2421,7 +2421,7 @@ Chart.types.Radar.extend({
 				var closePoints;
 
 				selectedChart = Chart.helpers.bcCharts[whichChart()];
-				if (e.touches.length > 0) {
+				if (e.touches) {
 					e.mobilePageX = e.touches[0].pageX;
 					e.mobilePageY = e.touches[0].pageY;
 				}
@@ -2441,7 +2441,7 @@ Chart.types.Radar.extend({
 		function mouseMove(e) {
 			if (me.mouseDown && me.activeBcPoint) {
 				me.options.animation = false;
-				if (e.touches.length > 0) {
+				if (e.touches) {
 					me.options.animation = true;
 					e.mobilePageX = e.touches[0].pageX;
 					e.mobilePageY = e.touches[0].pageY;
@@ -2454,7 +2454,7 @@ Chart.types.Radar.extend({
 			me.mouseDown=false;
 			if (me.activeBcPoint) {
 				me.options.animation = true;
-				if (e.touches.length > 0) {
+				if (e.touches) {
 					e.mobilePageX = e.touches[0].pageX;
 					e.mobilePageY = e.touches[0].pageY;
 				}
