@@ -2344,12 +2344,14 @@ Chart.types.Radar.extend({
 		//Update the chart if we have
 		//a selected point
 		function reDraw(e){
+
 			if (me.activeBcPoint){
+
 				var scale = me.scale;
 				var x1 = scale.xCenter+me.chart.canvas.offsetLeft;
 				var y1 = scale.yCenter+me.chart.canvas.offsetTop;
-				var x2 = e.pageX;
-				var y2 = e.pageY;
+				var x2 = e.mobilePageX || e.pageX;
+				var y2 = e.mobilePageY || e.pageY;
 				var newDist = Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1, 2));
 				var pixelPerNumber = (scale.drawingArea)/(scale.max - scale.min);
 				var newVal = (newDist/pixelPerNumber);
@@ -2412,6 +2414,28 @@ Chart.types.Radar.extend({
 		}
 
 		//Event listeners
+		//For mobile drag and drop
+		me.chart.canvas.addEventListener('touchmove', function(e){
+			me.mouseDown++;
+			if (Chart.helpers.currentUser) {
+				var selectedChart = {};
+				var closePoints;
+
+				selectedChart = Chart.helpers.bcCharts[whichChart()];
+				e.mobilePageX = e.touches[0].pageX;
+				e.mobilePageY = e.touches[0].pageY;
+				closePoints = selectedChart.getPointsAtEvent(e);
+
+				Chart.helpers.each(closePoints, function(val) {
+					if (val.datasetLabel === "User Rating") {
+						me.activeBcPoint = val;
+					}
+				});
+
+				reDraw(e);
+			}
+		});
+
 		me.chart.canvas.onmousedown = function(e) {
 			me.mouseDown++;
 			if (Chart.helpers.currentUser) {
@@ -2430,6 +2454,7 @@ Chart.types.Radar.extend({
 				reDraw(e);
 			}
 		}
+
 		me.chart.canvas.onmouseup = function(e) {
 			me.mouseDown--;
 			if (me.activeBcPoint) {
@@ -2439,12 +2464,14 @@ Chart.types.Radar.extend({
 				me.activeBcPoint = undefined;
 			}
 		}
+
 		me.chart.canvas.onmousemove = function(e) {
 			if(me.mouseDown && me.activeBcPoint){
 				me.options.animation = false;
 				reDraw(e);
 			}
 		}
+
 		Chart.types.Radar.prototype.initialize.apply(this, arguments);
 	}
 });
