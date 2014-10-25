@@ -2413,17 +2413,18 @@ Chart.types.Radar.extend({
 			return me.bcId;
 		}
 
-		//Event listeners
-		//For mobile drag and drop
-		me.chart.canvas.addEventListener('touchmove', function(e){
-			me.mouseDown++;
+		//Functions for events
+		function mouseDown(e) {
+			me.mouseDown=true;
 			if (Chart.helpers.currentUser) {
 				var selectedChart = {};
 				var closePoints;
 
 				selectedChart = Chart.helpers.bcCharts[whichChart()];
-				e.mobilePageX = e.touches[0].pageX;
-				e.mobilePageY = e.touches[0].pageY;
+				if (e.touches.length > 0) {
+					e.mobilePageX = e.touches[0].pageX;
+					e.mobilePageY = e.touches[0].pageY;
+				}
 				closePoints = selectedChart.getPointsAtEvent(e);
 
 				Chart.helpers.each(closePoints, function(val) {
@@ -2434,43 +2435,54 @@ Chart.types.Radar.extend({
 
 				reDraw(e);
 			}
-		});
 
-		me.chart.canvas.onmousedown = function(e) {
-			me.mouseDown++;
-			if (Chart.helpers.currentUser) {
-				var selectedChart = {};
-				var closePoints;
+		}
 
-				selectedChart = Chart.helpers.bcCharts[whichChart()];
-				closePoints = selectedChart.getPointsAtEvent(e);
-
-				Chart.helpers.each(closePoints, function(val) {
-					if (val.datasetLabel === "User Rating") {
-						me.activeBcPoint = val;
-					}
-				});
-
+		function mouseMove(e) {
+			if (me.mouseDown && me.activeBcPoint) {
+				me.options.animation = false;
+				if (e.touches.length > 0) {
+					me.options.animation = true;
+					e.mobilePageX = e.touches[0].pageX;
+					e.mobilePageY = e.touches[0].pageY;
+				}
 				reDraw(e);
 			}
 		}
 
-		me.chart.canvas.onmouseup = function(e) {
-			me.mouseDown--;
+		function mouseUp(e) {
+			me.mouseDown=false;
 			if (me.activeBcPoint) {
 				me.options.animation = true;
+				if (e.touches.length > 0) {
+					e.mobilePageX = e.touches[0].pageX;
+					e.mobilePageY = e.touches[0].pageY;
+				}
 				reDraw(e);
 				startBcUpdate();
 				me.activeBcPoint = undefined;
 			}
 		}
 
-		me.chart.canvas.onmousemove = function(e) {
-			if(me.mouseDown && me.activeBcPoint){
-				me.options.animation = false;
-				reDraw(e);
+		function clearTouch(){
+			me.mouseDown=false;
+			if (me.activeBcPoint) {
+				startBcUpdate();
+				me.activeBcPoint = undefined;
 			}
 		}
+
+		//Event listeners
+
+			//For mobile drag
+			me.chart.canvas.addEventListener('touchstart', mouseDown);
+			me.chart.canvas.addEventListener('touchmove', mouseMove);
+			me.chart.canvas.addEventListener('touchend', clearTouch);
+
+			//For desktop
+			me.chart.canvas.onmousedown = mouseDown;
+			me.chart.canvas.onmouseup = mouseUp;
+			me.chart.canvas.onmousemove = mouseMove;
 
 		Chart.types.Radar.prototype.initialize.apply(this, arguments);
 	}
