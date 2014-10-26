@@ -2442,7 +2442,6 @@ Chart.types.Radar.extend({
 			if (me.mouseDown && me.activeBcPoint) {
 				me.options.animation = false;
 				if (e.touches) {
-					me.options.animation = true;
 					e.mobilePageX = e.touches[0].pageX;
 					e.mobilePageY = e.touches[0].pageY;
 				}
@@ -2455,6 +2454,7 @@ Chart.types.Radar.extend({
 			if (me.activeBcPoint) {
 				me.options.animation = true;
 				if (e.touches) {
+					me.options.animation = false;
 					e.mobilePageX = e.touches[0].pageX;
 					e.mobilePageY = e.touches[0].pageY;
 				}
