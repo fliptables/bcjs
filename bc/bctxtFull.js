@@ -2310,9 +2310,10 @@ var BCAPI = window.BCAPI = {
 		pointStrokeColor: "rgba(0,0,0,0)",
 		pointHighlightFill: "rgba(0,0,0,0)",
 		pointHighlightStroke: "rgba(220,220,220,0)"
-	}
-
+	},
+	saveImage: new Image()
 };
+BCAPI.saveImage.src = 'http://get.bettercontext.com/saved.png';
 
 Chart.types.Radar.extend({
 	name:'BetterContext',
@@ -2337,7 +2338,7 @@ Chart.types.Radar.extend({
 		//multi charts
 		me.renderSaveImg = function() {
 			(function() {
-				me.chart.ctx.drawImage(me.saveIcon, (me.scale.xCenter-35), (me.scale.yCenter-35), 70, 70);
+				me.chart.ctx.drawImage(BCAPI.saveImage, (me.scale.xCenter-35), (me.scale.yCenter-35), 70, 70);
 			})();
 		};
 
@@ -2458,6 +2459,9 @@ Chart.types.Radar.extend({
 					e.mobilePageX = e.touches[0].pageX;
 					e.mobilePageY = e.touches[0].pageY;
 				}
+				//Reset colors
+				me.activeBcPoint.fillColor = BCAPI.user1Shape.pointColor;
+				me.activeBcPoint.strokeColor = BCAPI.user1Shape.pointStrokeColor;
 				reDraw(e);
 				startBcUpdate();
 				me.activeBcPoint = undefined;
@@ -2538,7 +2542,7 @@ Chart.helpers.bcDataMorph = function bcDataMorph(originalData, bcLabels){
 		];
 		dataSets.push(userRating);
 	} else if (Chart.helpers.currentUser) {
-		userRating.data = [0,0,0,0,0];
+		userRating.data = [1.5,1.5,1.5,1.5,1.5];
 		dataSets.push(userRating);
 	}
 
@@ -2584,11 +2588,11 @@ Chart.helpers.initBcCharts = window.initBcCharts = function initBcCharts(bcMulti
 		Chart.helpers.bcCharts['bcId-'+index].bcItemId = bcItemId;
 		Chart.helpers.bcCharts['bcId-'+index].bcId = 'bcId-'+index;
 
+
+
 		//Set the labels on the chart
 		if (Chart.helpers.currentUser) {
 			Chart.helpers.bcCharts['bcId-'+index].labels = {};
-			Chart.helpers.bcCharts['bcId-'+index].saveIcon = new Image();
-			Chart.helpers.bcCharts['bcId-'+index].saveIcon.src = 'http://get.bettercontext.com/saved.png';
 			Chart.helpers.each(bcMultiDataSets["labels"], function(label, idx){
 				Chart.helpers.bcCharts['bcId-'+index].labels[label] = {};
 				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricPos = 'm'+(idx+1);
