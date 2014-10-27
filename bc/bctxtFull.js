@@ -2390,6 +2390,20 @@ Chart.types.Radar.extend({
 		//Ajax request to BC, posting an update to the user rating
 		function sendUpdate(){
 			if (Chart.helpers.currentUser) {
+
+				//Show avg, id hiing it
+				if (me.hideAvgUntilRating) {
+					Chart.helpers.each(me.datasets, function(value) {
+						if (value.label === "Item Average") {
+							value.fillColor = BCAPI.avgShape.fillColor;
+							value.strokeColor = BCAPI.avgShape.strokeColor;
+							value.pointColor = BCAPI.avgShape.pointColor;
+							value.pointStroke = BCAPI.avgShape.pointStrokeColor;
+							me.update();
+						}
+					});
+				}
+
 				var params = 'site_id='+Chart.helpers.siteId+'&item_id='+me.bcItemId+'&user_id='+Chart.helpers.currentUser;
 				Chart.helpers.each(me.labels, function(value){
 					params += '&rating[]='+value.metricValue;
@@ -2462,6 +2476,7 @@ Chart.types.Radar.extend({
 				//Reset colors
 				me.activeBcPoint.fillColor = BCAPI.user1Shape.pointColor;
 				me.activeBcPoint.strokeColor = BCAPI.user1Shape.pointStrokeColor;
+
 				reDraw(e);
 				startBcUpdate();
 				me.activeBcPoint = undefined;
@@ -2498,17 +2513,42 @@ Chart.types.Radar.extend({
 
 //DATAMORPHER
 //This thing will take data from BC, and make it useable for the charts
-Chart.helpers.bcDataMorph = function bcDataMorph(originalData, bcLabels){
+Chart.helpers.bcDataMorph = function bcDataMorph(originalData, bcLabels, hideAvgUntilRating){
+
+	var avgFillColor;
+	var avgStrokeColor;
+	var avgPointColor;
+	var avgPointStroke;
+	var avgPointHighlightFill;
+	var avgPointHighlightStroke;
+	var transparent = 'rgba(0,0,0,0)';
+
+	if (hideAvgUntilRating) {
+		avgFillColor = transparent;
+		avgStrokeColor = transparent;
+		avgPointColor = transparent;
+		avgPointStroke = transparent;
+		avgPointHighlightFill = transparent;
+		avgPointHighlightStroke = transparent;
+	} else {
+		avgFillColor = BCAPI.avgShape.fillColor;
+		avgStrokeColor = BCAPI.avgShape.strokeColor;
+		avgPointColor = BCAPI.avgShape.pointColor;
+		avgPointStroke = BCAPI.avgShape.pointStrokeColor;
+		avgPointHighlightFill = BCAPI.avgShape.pointHighlightFill;
+		avgPointHighlightStroke = BCAPI.avgShape.pointHighlightStroke;
+	}
+
 	//Instantiate the datasets, with the item avg
 	var dataSets = [
 		{
 			label: "Item Average",
-			fillColor: BCAPI.avgShape.fillColor,
-			strokeColor: BCAPI.avgShape.strokeColor,
-			pointColor: BCAPI.avgShape.pointColor,
-			pointStrokeColor: BCAPI.avgShape.pointStrokeColor,
-			pointHighlightFill: BCAPI.avgShape.pointHighlightFill,
-			pointHighlightStroke: BCAPI.avgShape.pointHighlightStroke,
+			fillColor: avgFillColor,
+			strokeColor: avgStrokeColor,
+			pointColor: avgPointColor,
+			pointStrokeColor: avgPointStroke,
+			pointHighlightFill: avgPointHighlightFill,
+			pointHighlightStroke: avgPointHighlightStroke,
 			data: [
 				parseFloat(originalData["m1"]),
 				parseFloat(originalData["m2"]),
@@ -2575,9 +2615,12 @@ Chart.helpers.initBcCharts = window.initBcCharts = function initBcCharts(bcMulti
 		//Get the bc item id of the current chart
 		var bcItemId = value.getAttribute('data-item');
 
+		//hide Avg?
+		var hideAvgUntilRating = value.getAttribute('data-hide-avg-until-rating');
+
 		//Morph the data sent from bc, create the dataset to be used
 		//making this new chart
-		var bcData = Chart.helpers.bcDataMorph(bcMultiDataSets[bcItemId], bcMultiDataSets["labels"]);
+		var bcData = Chart.helpers.bcDataMorph(bcMultiDataSets[bcItemId], bcMultiDataSets["labels"], hideAvgUntilRating);
 
 		//Make the chart
 		Chart.helpers.bcCharts['bcId-'+index] = new Chart(value.getContext("2d")).BetterContext(bcData, {
@@ -2598,6 +2641,9 @@ Chart.helpers.initBcCharts = window.initBcCharts = function initBcCharts(bcMulti
 				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricPos = 'm'+(idx+1);
 				Chart.helpers.bcCharts['bcId-'+index].labels[label].metricValue = bcData.datasets[1].data[idx];
 			});
+			if (hideAvgUntilRating) {
+				Chart.helpers.bcCharts['bcId-'+index].hideAvgUntilRating = hideAvgUntilRating;
+			}
 		}
 
 	});
