@@ -2280,6 +2280,7 @@
 //are the callbacks that sites can use
 var BCAPI = window.BCAPI = {
 	itemSaved: false,
+	ratingValues: false,
 	options: {
 		scaleLineColor: 'rgba(255,255,255,0.2)',
 		pointLabelFontFamily : "'Arial'",
@@ -2345,9 +2346,7 @@ Chart.types.Radar.extend({
 		//Update the chart if we have
 		//a selected point
 		function reDraw(e){
-
 			if (me.activeBcPoint){
-
 				var scale = me.scale;
 				var x1 = scale.xCenter+me.chart.canvas.offsetLeft;
 				var y1 = scale.yCenter+me.chart.canvas.offsetTop;
@@ -2381,9 +2380,7 @@ Chart.types.Radar.extend({
 			window.clearTimeout(me.singleValueTimer);
 			me.singleValueTimer = setTimeout(function(){
 				sendUpdate();
-				if (BCAPI.itemSaved) {
-					window.bcItemSaved(me.chart.canvas);
-				}
+				afterRatingCallbacks();
 			}, 3000);
 		}
 
@@ -2418,6 +2415,16 @@ Chart.types.Radar.extend({
 				};
 				request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 				request.send(params);
+			}
+		}
+
+		//Whatever things we want to do after a rating will be called here
+		function afterRatingCallbacks() {
+			if (BCAPI.itemSaved) {
+				window.bcItemSaved(me.chart.canvas);
+			}
+			if (BCAPI.ratingValues) {
+				window.bcRatingValues(me.datasets[0].points, me.datasets[1].points);
 			}
 		}
 
@@ -2649,7 +2656,7 @@ Chart.helpers.initBcCharts = window.initBcCharts = function initBcCharts(bcMulti
 	});
 }
 
-BCAPI.reload = window.bcReload= function reloadBC() {
+BCAPI.load = window.bcReload= function reloadBC() {
 
 	//All charts on the page
 	var allCharts = document.getElementsByClassName('bc_chart');
@@ -2702,15 +2709,17 @@ BCAPI.reload = window.bcReload= function reloadBC() {
 		xhr.send();
 	})();
 
-
 };
 
 //Find charts
-//Get data
+//Init BC
 window.onload = function(){
 
 	//Checking if the page utilizes the API
 	(function initializeBctxtApi(){
+		if (window.bcRatingValues) {
+			BCAPI.ratingValues = true;
+		}
 		if (window.bcItemSaved) {
 			BCAPI.itemSaved = true;
 		}
@@ -2729,34 +2738,7 @@ window.onload = function(){
 	//Create a helper to store all the charts owned by bc
 	Chart.helpers.bcCharts = {};
 
-	//Create the query we're going to make our JSONP
-	//request with
-	var bcQuery = function(){
-		if (!Chart.helpers.siteId) {
-			Chart.helpers.siteId = document.getElementById('bctxtScript').getAttribute('data-account');
-		}
-		var query = '/api/item_ratings?site_id='+Chart.helpers.siteId;
-		if (Chart.helpers.currentUser) {
-			query+=('&user_id='+Chart.helpers.currentUser);
-		}
-		Chart.helpers.each(allCharts, function(value, index){
-			//Get the bc item id of the current chart
-			var itemId = value.getAttribute('data-item');
-			query+=('&items[]='+itemId);
-		});
-		return query;
-	};
-
-	//Make our inital request
-	(function makeBcInitRequest(){
-
-		var script = document.createElement('script');
-		script.src = '//bettercontext.com'+bcQuery();
-
-		//Send Request
-		document.getElementsByTagName('head')[0].appendChild(script);
-		// or document.head.appendChild(script) in modern browsers
-
-	})();
+	//Load BC
+	BCAPI.load();
 
 }
