@@ -2280,6 +2280,8 @@
 //are the callbacks that sites can use
 var BCAPI = window.BCAPI = {
 	itemSaved: false,
+	ratingStarted: false,
+	ratingStopped: false,
 	ratingValues: false,
 	options: {
 		scaleLineColor: 'rgba(255,255,255,0.2)',
@@ -2377,7 +2379,12 @@ Chart.types.Radar.extend({
 		//action before we send data to BC
 		function startBcUpdate(label) {
 			//Reset timer every time an click occurs
-			window.clearTimeout(me.singleValueTimer);
+			if (me.singleValueTimer) {
+				window.clearTimeout(me.singleValueTimer);
+			}
+			if (BCAPI.ratingStarted) {
+				window.bcRatingStarted();
+			}
 			me.singleValueTimer = setTimeout(function(){
 				sendUpdate();
 				afterRatingCallbacks();
@@ -2438,6 +2445,12 @@ Chart.types.Radar.extend({
 		//Functions for events
 		function mouseDown(e) {
 			me.mouseDown=true;
+			if (me.singleValueTimer) {
+				window.clearTimeout(me.singleValueTimer);
+				if (BCAPI.ratingStopped) {
+					window.bcRatingStopped();
+				}
+			}
 			if (Chart.helpers.currentUser) {
 				var selectedChart = {};
 				var closePoints;
@@ -2722,6 +2735,12 @@ window.onload = function(){
 		}
 		if (window.bcItemSaved) {
 			BCAPI.itemSaved = true;
+		}
+		if (window.bcRatingStarted) {
+			BCAPI.ratingStarted = true;
+		}
+		if (window.bcRatingStopped) {
+			BCAPI.ratingStopped = true;
 		}
 	})();
 
