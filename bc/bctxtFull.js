@@ -2278,12 +2278,43 @@
 
 //This is the BC API, these
 //are the callbacks that sites can use
-var BCAPI = window.BCAPI = {
+function initBCAPI() {
+	var userAPI =  window.BetterContext;
+
+	//Init the callbacks
+	if (window.bcRatingValues) {
+		BCAPI.ratingValues = true;
+	}
+	if (window.bcItemSaved) {
+		BCAPI.itemSaved = true;
+	}
+	if (window.bcRatingStarted) {
+		BCAPI.ratingStarted = true;
+	}
+	if (window.bcRatingStopped) {
+		BCAPI.ratingStopped = true;
+	}
+
+	//Check the properties
+	Chart.helpers.each(Object.keys(userAPI), function(key, index) {
+		if (typeof userAPI[key] === 'object') {
+			Chart.helpers.each(Object.keys(userAPI[key]), function(nestedKey, idx) {
+				BCAPI[key][nestedKey] = userAPI[key][nestedKey];
+			});
+		} else {
+			BCAPI[key] = userAPI[key];
+		}
+	});
+
+}
+
+var BCAPI = {
 	itemSaved: false,
 	ratingStarted: false,
 	ratingStopped: false,
 	ratingValues: false,
 	options: {
+		defaultWaitTime: 3000,
 		scaleLineColor: 'rgba(255,255,255,0.2)',
 		pointLabelFontFamily : "'Arial'",
 		pointLabelFontStyle : "normal",
@@ -2388,7 +2419,7 @@ Chart.types.Radar.extend({
 			me.singleValueTimer = setTimeout(function(){
 				sendUpdate();
 				afterRatingCallbacks();
-			}, 3000);
+			}, BCAPI.options.defaultWaitTime);
 		}
 
 		//Ajax request to BC, posting an update to the user rating
@@ -2586,7 +2617,7 @@ Chart.helpers.bcDataMorph = function bcDataMorph(originalData, bcLabels, hideAvg
 		pointColor: BCAPI.user1Shape.pointColor,
 		pointStrokeColor: BCAPI.user1Shape.pointStrokeColor,
 		pointHighlightFill: BCAPI.user1Shape.pointHighlightFill,
-		pointHighlightStroke: BCAPI.user1Shape.pointHighlightStroke,
+		pointHighlightStroke: BCAPI.user1Shape.pointHighlightStroke
 	};
 
 	//If there is a user defined
@@ -2729,20 +2760,7 @@ BCAPI.load = window.bcReload= function reloadBC() {
 window.onload = function(){
 
 	//Checking if the page utilizes the API
-	(function initializeBctxtApi(){
-		if (window.bcRatingValues) {
-			BCAPI.ratingValues = true;
-		}
-		if (window.bcItemSaved) {
-			BCAPI.itemSaved = true;
-		}
-		if (window.bcRatingStarted) {
-			BCAPI.ratingStarted = true;
-		}
-		if (window.bcRatingStopped) {
-			BCAPI.ratingStopped = true;
-		}
-	})();
+	initBCAPI();
 
 	//All charts on the page
 	var allCharts = document.getElementsByClassName('bc_chart');
