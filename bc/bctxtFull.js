@@ -2295,16 +2295,18 @@ function initBCAPI() {
 		BCAPI.ratingStopped = true;
 	}
 
-	//Check the properties
-	Chart.helpers.each(Object.keys(userAPI), function(key, index) {
-		if (typeof userAPI[key] === 'object') {
-			Chart.helpers.each(Object.keys(userAPI[key]), function(nestedKey, idx) {
-				BCAPI[key][nestedKey] = userAPI[key][nestedKey];
-			});
-		} else {
-			BCAPI[key] = userAPI[key];
-		}
-	});
+	//Override the defaults
+	if (userAPI) {
+		Chart.helpers.each(Object.keys(userAPI), function(key, index) {
+			if (typeof userAPI[key] === 'object') {
+				Chart.helpers.each(Object.keys(userAPI[key]), function(nestedKey, idx) {
+					BCAPI[key][nestedKey] = userAPI[key][nestedKey];
+				});
+			} else {
+				BCAPI[key] = userAPI[key];
+			}
+		});
+	}
 
 }
 
