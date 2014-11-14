@@ -2445,7 +2445,7 @@ Chart.types.Radar.extend({
 				Chart.helpers.each(me.labels, function(value){
 					params += '&rating[]='+value.metricValue;
 				});
-				var postUrl = '//www.bettercontext.com/api/user_ratings';
+				var postUrl = '//www.bettercontext.com/api/user_ratings?';
 				var request = new XMLHttpRequest();
 				request.open('POST', postUrl, true);
 				request.onreadystatechange = function() {
@@ -2731,7 +2731,7 @@ BCAPI.load = window.bcReload= function reloadBC() {
 		if (!Chart.helpers.siteId) {
 			Chart.helpers.siteId = document.getElementById('bctxtScript').getAttribute('data-account');
 		}
-		var query = '/api/item_ratings/get/ratings?site_id='+Chart.helpers.siteId;
+		var query = '/api/item_ratings?site_id='+Chart.helpers.siteId;
 		if (Chart.helpers.currentUser) {
 			query+=('&user_id='+Chart.helpers.currentUser);
 		}
