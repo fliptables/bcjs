@@ -2276,40 +2276,6 @@
 
 }).call(this);
 
-//This is the BC API, these
-//are the callbacks that sites can use
-function initBCAPI() {
-	var userAPI =  window.BetterContext;
-
-	//Init the callbacks
-	if (window.bcRatingValues) {
-		BCAPI.ratingValues = true;
-	}
-	if (window.bcItemSaved) {
-		BCAPI.itemSaved = true;
-	}
-	if (window.bcRatingStarted) {
-		BCAPI.ratingStarted = true;
-	}
-	if (window.bcRatingStopped) {
-		BCAPI.ratingStopped = true;
-	}
-
-	//Override the defaults
-	if (userAPI) {
-		Chart.helpers.each(Object.keys(userAPI), function(key, index) {
-			if (typeof userAPI[key] === 'object') {
-				Chart.helpers.each(Object.keys(userAPI[key]), function(nestedKey, idx) {
-					BCAPI[key][nestedKey] = userAPI[key][nestedKey];
-				});
-			} else {
-				BCAPI[key] = userAPI[key];
-			}
-		});
-	}
-
-}
-
 var BCAPI = {
 	itemSaved: false,
 	ratingStarted: false,
@@ -2318,9 +2284,9 @@ var BCAPI = {
 	options: {
 		defaultWaitTime: 3000,
 		scaleLineColor: 'rgba(255,255,255,0.2)',
-		pointLabelFontFamily : "'Arial'",
-		pointLabelFontStyle : "normal",
-		pointLabelFontSize : 13,
+		pointLabelFontFamily : "'Open Sans', 'Helvetica', 'Arial'",
+		pointLabelFontStyle : "bold",
+		pointLabelFontSize : 10,
 		pointLabelFontColor : "#fff"
 	},
 	avgShape: {
@@ -2350,6 +2316,43 @@ var BCAPI = {
 	saveImage: new Image()
 };
 BCAPI.saveImage.src = 'http://get.bettercontext.com/saved.png';
+
+//This is the BC API, these
+//are the callbacks that sites can use
+(function initBCAPI() {
+	var userAPI =  window.BetterContext;
+
+	//Init the callbacks
+	if (window.bcRatingValues) {
+		BCAPI.ratingValues = true;
+	}
+	if (window.bcItemSaved) {
+		BCAPI.itemSaved = true;
+	}
+	if (window.bcRatingStarted) {
+		BCAPI.ratingStarted = true;
+	}
+	if (window.bcRatingStopped) {
+		BCAPI.ratingStopped = true;
+	}
+
+	//Override the defaults
+	if (userAPI) {
+		console.log('poop');
+		Chart.helpers.each(Object.keys(userAPI), function(key, index) {
+			console.log('poop');
+			if (typeof userAPI[key] === 'object') {
+				Chart.helpers.each(Object.keys(userAPI[key]), function(nestedKey, idx) {
+					console.log('poop');
+					BCAPI[key][nestedKey] = userAPI[key][nestedKey];
+				});
+			} else {
+				BCAPI[key] = userAPI[key];
+			}
+		});
+	}
+
+})();
 
 Chart.types.Radar.extend({
 	name:'BetterContext',
@@ -2760,9 +2763,6 @@ BCAPI.load = window.bcReload= function reloadBC() {
 //Find charts
 //Init BC
 window.onload = function(){
-
-	//Checking if the page utilizes the API
-	initBCAPI();
 
 	//All charts on the page
 	var allCharts = document.getElementsByClassName('bc_chart');
