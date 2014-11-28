@@ -2338,12 +2338,9 @@ BCAPI.saveImage.src = 'http://get.bettercontext.com/saved.png';
 
 	//Override the defaults
 	if (userAPI) {
-		console.log('poop');
 		Chart.helpers.each(Object.keys(userAPI), function(key, index) {
-			console.log('poop');
 			if (typeof userAPI[key] === 'object') {
 				Chart.helpers.each(Object.keys(userAPI[key]), function(nestedKey, idx) {
-					console.log('poop');
 					BCAPI[key][nestedKey] = userAPI[key][nestedKey];
 				});
 			} else {
