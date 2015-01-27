@@ -1,26 +1,17 @@
-# Chart.js
+# API
 
-*Simple HTML5 Charts using the canvas element* [chartjs.org](http://www.chartjs.org)
+In its current form, the public "api" has the following callback functions:
 
-## Documentation
+ratingValues = When a rating is complete, it sends the rating values back. Croovies uses this, to compare the user's rating, to the average rating, to determine if the user was very different from the average.
 
-You can find documentation at [chartjs.org/docs](http://www.chartjs.org/docs/). The markdown files that build the site are available under `/docs`. Please note - in some of the json examples of configuration you might notice some liquid tags - this is just for the generating the site html, please disregard.
+itemSaved = This is obviously to signal to the publisher that whatever item is being rated, the rating has saved to BC. This is important to note, because a single rating can be (but is not always) more than 1 action. A user could move a point on just one dimension, and then stop - completing the rating. Or they might rate all 5 dimensions. The challenge is trying to save when the user is done - and not before. But also before they possibly leave the page.
 
-## License
+ratingStarted = Because a rating generally takes multiple actions, BC waits a few seconds to save the rating. This is called as soon as the rating begins though. Croovies uses this to show a "constant visual timer", that when it is complete, the rating will save - modifying the rating will reset the timer.
 
-Chart.js is available under the [MIT license](http://opensource.org/licenses/MIT).
+ratingStopped = This clears the previous item
 
-## Bugs & issues
+---
 
-When reporting bugs or issues, if you could include a link to a simple [jsbin](http://jsbin.com) or similar demonstrating the issue, that'd be really helpful.
+The rest of the JS API, is just defining style attributes for the charts.
 
-
-## Contributing
-New contributions to the library are welcome, just a couple of guidelines:
-
-- Tabs for indentation, not spaces please.
-- Please ensure you're changing the individual files in `/src`, not the concatenated output in the `Chart.js` file in the root of the repo.
-- Please check that your code will pass `jshint` code standards, `gulp jshint` will run this for you.
-- Please keep pull requests concise, and document new functionality in the relevant `.md` file.
-- Consider whether your changes are useful for all users, or if creating a Chart.js extension would be more appropriate.
-- Please avoid committing in the build Chart.js & Chart.min.js file, as it causes conflicts when merging.
+I've built this solely based on what croovies has needed, so I haven't put much more thought into it beyond that... I imagine as we build croovies out more, we'll run into many more cases
