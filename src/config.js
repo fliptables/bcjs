@@ -1,8 +1,9 @@
-requirejs.config({
-  baseUrl: 'src',
+require.config({
+  baseUrl: '../src',
+  deps: ['BetterContext'],
   paths: {
     chartjs: 'libs/chartjs/Chart',
-    lodash: 'libs/lodash'
+    lodash: 'libs/lodash/lodash'
   }
 });
 
