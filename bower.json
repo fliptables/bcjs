@@ -1,0 +1,27 @@
+{
+  "name": "bcjs",
+  "version": "0.0.1",
+  "homepage": "https://github.com/getnashty/bcjs",
+  "authors": [
+    "James Morrin <treasonx@gmail.com>"
+  ],
+  "description": "Better-Context library",
+  "main": "src/BetterContext.js",
+  "moduleType": [
+    "amd",
+    "globals"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "lodash": "~3.0.1",
+    "chartjs": "~1.0.1"
+  }
+}
