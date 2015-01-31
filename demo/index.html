@@ -4,9 +4,17 @@
     <title>Example</title>
   </head>
   <body>
+    <div 
+      data-bc-chart="pentagon"
+      data-bc-id="SOME_ID_1"></div>
+    <div 
+      data-bc-chart="pentagon"
+      data-bc-id="SOME_ID_2">
+    </div>
     <script 
       src="../src/libs/requirejs/require.js" 
       data-main="../src/config" 
+      data-bc-user="jmorrin@example.com"
       data-bc-auto
       data-bc-api="DEMO_API"></script>
   </body>
