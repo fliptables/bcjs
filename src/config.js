@@ -5,8 +5,8 @@ require.config({
     { name: 'when', location: 'libs/when', main: 'when' }
   ],
   paths: {
-    chartjs: 'libs/chartjs/Chart',
-    URI: 'libs/URIjs/src/URI',
+    Chart: 'libs/chartjs/Chart',
+    URIjs: 'libs/URIjs/src',
     lodash: 'libs/lodash/lodash'
   }
 });

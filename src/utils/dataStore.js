@@ -1,6 +1,6 @@
 define(function (require) {
 
-  var URI = require('URI/URIjs');
+  var URI = require('URIjs/URI');
   var _URI = '//www.bettercontext.com';
   var BASE_URI = '//www.bettercontext.com/api/user_ratings';
 
@@ -30,9 +30,11 @@ define(function (require) {
 	}
 
 
-  function DataStore() {
+  function DataStore(options) {
+    options = options || {};
     this._apiKey = '';
     this._userId = '';
+    this._baseUrl = options.serverbase || BASE_URI;
   }
 
   DataStore.prototype = {
@@ -49,5 +51,7 @@ define(function (require) {
 
     }
   };
+
+  return DataStore;
 });
 
