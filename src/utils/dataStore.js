@@ -1,17 +1,15 @@
 define(function (require) {
 
   var URI = require('URIjs/URI');
-  var _URI = '//www.bettercontext.com';
   var BASE_URI = '//www.bettercontext.com/api/user_ratings';
+  var when = require('when');
 
-  var queryURI = new URI(BASE_URI);
-  var postURI = new URI(BASE_URI);
-
-	function makeRequest(method, uri){
+	function makeRequest(uri, method){
 		var xhr = new XMLHttpRequest();
     var defer = when.defer();
+    method = method || 'GET';
 		xhr.onreadystatechange = function() {
-			if (xhr.readyState == 4) {
+			if (xhr.readyState === 4) {
 				var resp = xhr.responseText;
         if(xhr.status === 200) {
           try {
@@ -32,8 +30,8 @@ define(function (require) {
 
   function DataStore(options) {
     options = options || {};
-    this._apiKey = '';
-    this._userId = '';
+    this._apiKey = options.api;
+    this._user = options.user;
     this._baseUrl = options.serverbase || BASE_URI;
   }
 
@@ -44,8 +42,27 @@ define(function (require) {
     setUser: function (user) {
       this._user = user;
     },
-    getRatingItems: function (limit) {
+    getRatingItems: function (options) {
+      var user = options.user || this._user;
+      var api = options.api || this._apiKey;
+      var id = options.id;
+      var url = options.serverbase || this._baseUrl || BASE_URI;
 
+      url = new URI(url);
+
+      url.search({
+        user: user,
+        api: api,
+        id: id,
+        item: id
+      });
+
+      return makeRequest(url.toString()).then(function(data) {
+        return {
+          labels: data.labels,
+          results: data[id]
+        };
+      });
     },
     saveRating: function () {
 
