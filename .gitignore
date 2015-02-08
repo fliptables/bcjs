@@ -1,6 +1,5 @@
 .DS_Store
 .bower/
-.bowerrc
 src/libs/
 node_modules/
 dist/

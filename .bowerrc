@@ -1,0 +1,12 @@
+{
+  "directory": "src/libs",
+  "analytics": false,
+  "storage":{ 
+    "packages":"./.bower/packages",
+    "cache": "./.bower/cache",
+    "registry": "./.bower/registry",
+    "links": "./.bower/links",
+    "completion": "./.bower/completion",
+    "empty": "./.bower/empty"
+  } 
+}
