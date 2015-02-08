@@ -35,5 +35,21 @@ Auto mode example script:
 </div>
 ```
 
+# Development
+
+There are three scripts which can be used while working on the BetterContext
+JavaScript code. 
+
+* `script/setup` - installs all dependencies and builds the project
+* `script/build` - builds the project
+* `script/serve` - starts the development server
+
+Scripts can be run from the root of the repo. For example to setup the project
+you could run:
+
+```
+./scripts/setup
+```
+
 
 
