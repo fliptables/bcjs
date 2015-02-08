@@ -1,6 +1,7 @@
 define(function (require) {
 
   var Chart = require('Chart');
+  var Modernizr = require('Modernizr');
   var _ = require('lodash');
   var DEFAULTS = {
     scaleOverride: true,
@@ -105,10 +106,6 @@ define(function (require) {
     };
   }
 
-  /*
-   * TODO when we implement a touch device we need to implement a function
-   * which can give us x and y relative to the top left of the canvas object.
-   */
   function getMousePos(e, canvasPos) {
     var mouseX = e.clientX - canvasPos.left + window.pageXOffset;
     var mouseY = e.clientY - canvasPos.top + window.pageYOffset;
@@ -118,13 +115,120 @@ define(function (require) {
     };
   }
 
+  function getTouchPos(e, canvasPos) {
+    var touch;
+    var touchX;
+    var touchY;
+    if (e.touches) {
+      touch = e.touches[0];
+      touchX = touch.pageX - canvasPos.left + window.pageXOffset;
+      touchY = touch.pageY - canvasPos.top + window.pageYOffset;
+    }
+    return {
+      x : touchX,
+      y : touchY
+    };
+  }
+
   return function (ele, settings, dataStore, emitter) {
     var options = _.merge(_.clone(DEFAULTS), settings);
     var canvas;
     var onMouseMove;
+    var onTouchMove;
     var chart;
     var point;
     var dogHandle;
+
+    function petTheDog() {
+      clearTimeout(dogHandle);
+      dogHandle = setTimeout(completeRating, options.wait);
+      emitter.emit('timer', {
+        id: options.id,
+        target: chart.chart.canvas
+      });
+    }
+
+    function getPointFromEvent(e) {
+      var points = chart.getPointsAtEvent(e);
+      point = _.find(points, function (p) {
+        return p.datasetLabel === 'input';
+      });
+    }
+
+    function onTouchStart(e) {
+      var canvasPos = getCanvasPos(canvas);
+      getPointFromEvent(e);
+      canvas.addEventListener('touchmove', onTouchMove);
+      redraw(getTouchPos(e, canvasPos));
+      chart.options.animation = false;
+      petTheDog();
+      e.preventDefault();
+    }
+
+    function onTouchEnd(e) {
+      canvas.removeEventListener('touchmove', onTouchMove);
+      point = undefined;
+      chart.options.animation = true;
+      e.preventDefault();
+    }
+
+    function onMouseDown(e) {
+      var canvasPos = getCanvasPos(canvas);
+      getPointFromEvent(e);
+      canvas.addEventListener('mousemove', onMouseMove);
+      redraw(getMousePos(e, canvasPos));
+      chart.options.animation = false;
+      petTheDog();
+    }
+
+    function onMouseUp() {
+      canvas.removeEventListener('mousemove', onMouseMove);
+      point = undefined;
+      chart.options.animation = true;
+    }
+
+    function onMouseOut() {
+      canvas.removeEventListener('mousemove', onMouseMove);
+      point = undefined;
+      chart.options.animation = true;
+    }
+
+    onTouchMove = _.debounce(function (e) {
+      var canvasPos = getCanvasPos(canvas);
+      petTheDog();
+      redraw(getTouchPos(e, canvasPos));
+      e.preventDefault();
+    }, 10);
+
+    onMouseMove = _.debounce(function (e) {
+      var canvasPos = getCanvasPos(canvas);
+      petTheDog();
+      redraw(getMousePos(e, canvasPos));
+    }, 10);
+
+    function removeHandlers() {
+      if(Modernizr.touch) {
+        canvas.removeEventListener('touchstart', onTouchStart);
+        canvas.removeEventListener('touchend', onTouchEnd);
+        canvas.removeEventListener('touchmove', onTouchMove);
+      } else {
+        canvas.removeEventListener('mousedown', onMouseDown);
+        canvas.removeEventListener('mouseup', onMouseUp);
+        canvas.removeEventListener('mouseout', onMouseOut);
+        canvas.removeEventListener('mousemove', onMouseMove);
+      }
+    }
+
+    function registerHandlers() {
+      if(Modernizr.touch) {
+        canvas.addEventListener('touchstart', onTouchStart);
+        canvas.addEventListener('touchend', onTouchEnd);
+      } else {
+        canvas.addEventListener('mousedown', onMouseDown);
+        canvas.addEventListener('mouseup', onMouseUp);
+        canvas.addEventListener('mouseout', onMouseOut);
+      }
+    }
 
     function redraw(pos) {
       if(!point) {
@@ -155,9 +259,7 @@ define(function (require) {
       var dataset;
       var input;
       var result;
-      canvas.removeEventListener('mousedown', onMouseDown);
-      canvas.removeEventListener('mouseup', onMouseUp);
-      canvas.removeEventListener('mouseout', onMouseOut);
+      removeHandlers();
       _.each(chart.datasets, function (set) {
         if(set.label !== 'input') {
           dataset = set;
@@ -194,46 +296,6 @@ define(function (require) {
       });
     }
 
-    function petTheDog() {
-      clearTimeout(dogHandle);
-      dogHandle = setTimeout(completeRating, options.wait);
-      emitter.emit('timer', {
-        id: options.id,
-        target: chart.chart.canvas
-      });
-    }
-
-    function onMouseDown(e) {
-      var canvasPos = getCanvasPos(canvas);
-      var points = chart.getPointsAtEvent(e);
-      point = _.find(points, function (p) {
-        return p.datasetLabel === 'input';
-      });
-      canvas.addEventListener('mousemove', onMouseMove);
-      redraw(getMousePos(e, canvasPos));
-      chart.options.animation = false;
-      petTheDog();
-    }
-
-    function onMouseUp() {
-      canvas.removeEventListener('mousemove', onMouseMove);
-      point = undefined;
-      chart.options.animation = true;
-    }
-
-    function onMouseOut() {
-      canvas.removeEventListener('mousemove', onMouseMove);
-      point = undefined;
-      chart.options.animation = true;
-    }
-
-    onMouseMove = _.debounce(function (e) {
-      var canvasPos = getCanvasPos(canvas);
-      petTheDog();
-      redraw(getMousePos(e, canvasPos));
-    }, 10);
-
-
     if(ele.tagName.toLowerCase() !== 'canvas') {
       canvas = document.createElement('canvas');
       ele.appendChild(canvas);
@@ -247,9 +309,7 @@ define(function (require) {
       var data = buildData(resp.results, resp.labels);
       console.log(data);
       chart = new Chart(canvas.getContext('2d')).Radar(data, options);
-      canvas.addEventListener('mousedown', onMouseDown);
-      canvas.addEventListener('mouseup', onMouseUp);
-      canvas.addEventListener('mouseout', onMouseOut);
+      registerHandlers();
     }, function (err) {
       console.log('error getting data');
       console.error(err);
