@@ -91,10 +91,12 @@ define(function (require) {
   function getCanvasPos(myCanvas) {
     var x = myCanvas.offsetLeft;
     var y = myCanvas.offsetTop;
+    myCanvas = myCanvas.offsetParent;
 
-    while(myCanvas = myCanvas.offsetParent) {
+    while(myCanvas) {
       x += myCanvas.offsetLeft - myCanvas.scrollLeft;
       y += myCanvas.offsetTop - myCanvas.scrollTop;
+      myCanvas = myCanvas.offsetParent;
     }
 
     return {
