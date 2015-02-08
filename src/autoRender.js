@@ -10,7 +10,7 @@ define(function (require) {
     settings = _.merge(_.clone(globalSettings), settings);
 
     if(settings.chart === true) {
-      pentagon(ele, settings, dataStore);
+      pentagon(ele, settings, dataStore, emitter);
     } else {
       console.log('unknown chart');
     }
@@ -21,9 +21,8 @@ define(function (require) {
     render: function (settings) {
       var eles = document.querySelectorAll('*[data-bc-chart]');
       var dataStore = new DataStore(settings);
-
       _.each(eles, function (ele) {
-        renderChart(ele, settings, dataStore);
+        renderChart(ele, settings, dataStore, emitter);
       });
       return emitter;
     }

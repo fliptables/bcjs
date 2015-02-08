@@ -42,6 +42,10 @@ define(function (require) {
     setUser: function (user) {
       this._user = user;
     },
+    saveRatingItem: function (options, data) {
+      console.log('TODO IMPLEMENT SAVING', data);
+      return when();
+    },
     getRatingItems: function (options) {
       var user = options.user || this._user;
       var api = options.api || this._apiKey;

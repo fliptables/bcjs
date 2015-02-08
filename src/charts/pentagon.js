@@ -116,11 +116,13 @@ define(function (require) {
     };
   }
 
-  return function (ele, settings, dataStore) {
+  return function (ele, settings, dataStore, emitter) {
+    var options = _.merge(_.clone(DEFAULTS), settings);
     var canvas;
     var onMouseMove;
     var chart;
     var point;
+    var dogHandle;
 
     function redraw(pos) {
       if(!point) {
@@ -147,6 +149,58 @@ define(function (require) {
       chart.update();
     }
 
+    function completeRating() {
+      var dataset;
+      var input;
+      var result;
+      canvas.removeEventListener('mousedown', onMouseDown);
+      canvas.removeEventListener('mouseup', onMouseUp);
+      canvas.removeEventListener('mouseout', onMouseOut);
+      _.each(chart.datasets, function (set) {
+        if(set.label !== 'input') {
+          dataset = set;
+        } else {
+          input = set;
+        }
+      });
+
+      result = _.map(input.points, function (point) {
+        return {
+          label: point.label,
+          value: point.value.toFixed(2)
+        };
+      });
+
+      dataStore.saveRatingItem(options, result).then(function () {
+        console.log('results saved');
+        _.extend(dataset, ANSWER_STYLES);
+        chart.update();
+        emitter.emit('saved', {
+          id: options.id,
+          target: chart.chart.canvas,
+          result: result,
+          average: _.map(dataset.points, function (point) {
+            return {
+              label: point.label,
+              value: point.value
+            };
+          })
+        });
+      }, function (err) {
+        console.log('error saving');
+        console.error(err);
+      });
+    }
+
+    function petTheDog() {
+      clearTimeout(dogHandle);
+      dogHandle = setTimeout(completeRating, options.wait);
+      emitter.emit('timer', {
+        id: options.id,
+        target: chart.chart.canvas
+      });
+    }
+
     function onMouseDown(e) {
       var canvasPos = getCanvasPos(canvas);
       var points = chart.getPointsAtEvent(e);
@@ -156,6 +210,7 @@ define(function (require) {
       canvas.addEventListener('mousemove', onMouseMove);
       redraw(getMousePos(e, canvasPos));
       chart.options.animation = false;
+      petTheDog();
     }
 
     function onMouseUp() {
@@ -172,8 +227,10 @@ define(function (require) {
 
     onMouseMove = _.debounce(function (e) {
       var canvasPos = getCanvasPos(canvas);
+      petTheDog();
       redraw(getMousePos(e, canvasPos));
     }, 10);
+
 
     if(ele.tagName.toLowerCase() !== 'canvas') {
       canvas = document.createElement('canvas');
@@ -184,7 +241,6 @@ define(function (require) {
       canvas = ele;
     }
 
-    var options = _.merge(_.clone(DEFAULTS), settings);
     dataStore.getRatingItems(options).then(function (resp) {
       var data = buildData(resp.results, resp.labels);
       console.log(data);
@@ -192,7 +248,6 @@ define(function (require) {
       canvas.addEventListener('mousedown', onMouseDown);
       canvas.addEventListener('mouseup', onMouseUp);
       canvas.addEventListener('mouseout', onMouseOut);
-
     }, function (err) {
       console.log('error getting data');
       console.error(err);

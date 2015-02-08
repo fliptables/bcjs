@@ -21,9 +21,10 @@ define(function (require) {
         return h === handler;
       });
     },
-    emit: function (topic, args) {
+    emit: function (topic) {
 
       var handlers = this._topics[topic];
+      var args = _.toArray(arguments).slice(1);
 
       _.each(handlers, function (handler) {
         invokeHandler(handler, args);

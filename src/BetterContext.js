@@ -2,7 +2,9 @@ define(function (require) {
 
   var utils = require('utils/utils');
   var script = utils.findScriptTag();
+  var _ = require('lodash');
   var autoRender = require('autoRender');
+  var tasks = window.BetterContext || [];
   var api;
   var settings;
 
@@ -11,25 +13,33 @@ define(function (require) {
   }
 
   settings = utils.gatherSettings(script);
+  settings.wait = 3000;
 
   if(settings.auto) {
     api = autoRender.render(settings);
   }
 
-  return {
-    init: function (options) {
-
+  window.BetterContext = {
+    push: runTask,
+    ready: function (fn) {
+      fn();
     },
     on: function (topic, listener) {
       api.on(topic, listener);
     },
     off: function (topic, listener) {
       api.off(topic, listener);
-    },
-    createChart: function (options) {
-
     }
   };
+
+  function runTask(command) {
+    var task = command[0];
+    if(window.BetterContext[task]) {
+      window.BetterContext[task].apply(window.BetterContext, command.slice(1));
+    }
+  }
+
+  _.each(tasks, runTask);
 
 });
 

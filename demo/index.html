@@ -37,5 +37,20 @@
       data-bc-hide-avg
       data-bc-auto
       data-bc-api="DEMO_API"></script>
+      <script>
+        var BetterContext = BetterContext || [];
+        BetterContext.push(['ready', function () {
+          BetterContext.on('saved', function (event) {
+            //called when the items have been saved to the server
+            console.log('Page got saved event');
+            console.log(event);
+          });
+          BetterContext.on('timer', function (event) {
+            //called when the timer is reset.
+            console.log('timer start');
+            console.log(event);
+          });
+        }]);
+      </script>
   </body>
 </html>
