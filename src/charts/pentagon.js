@@ -11,11 +11,6 @@ define(function (require) {
     scaleShowLabels : false,
     scaleBeginAtZero : true,
     angleLineColor : 'white',
-    pointLabelFontFamily : 'Arial',
-    pointLabelFontStyle : 'normal',
-    pointLabelFontSize : 12,
-    pointLabelFontColor : '#666',
-    pointDot : true,
     pointDotRadius : 5,
     pointDotStrokeWidth : 3,
     pointHitDetectionRadius : 10,
@@ -28,7 +23,11 @@ define(function (require) {
   };
 
   var INPUT_STYLES = {
+    // this label value is important! We use this to identify draggable input
+    // points
+    label: 'input',
     fillColor: 'rgba(231, 76, 60,0.7)',
+    pointDot : true,
     strokeColor: 'rgba(241, 196, 15,1.0)',
     pointColor: 'rgba(241, 196, 15,1.0)',
     pointStrokeColor: 'rgba(236, 240, 241,1.0)',
@@ -55,6 +54,18 @@ define(function (require) {
     pointLabelFontColor : '#fff'
   };
 
+	var transparent = 'rgba(0,0,0,0)';
+
+  var HIDDEN_ANSWER_STYLES = {
+    fillColor: transparent,
+    pointDot : false,
+    strokeColor: transparent,
+    pointColor: transparent,
+    pointStrokeColor: transparent,
+    pointHighlightFill: transparent,
+    pointHighlightStroke: transparent
+  };
+
   function getInput() {
     var out = _.clone(INPUT_STYLES);
     out.data = [1, 1, 1, 1, 1];
@@ -62,7 +73,7 @@ define(function (require) {
   }
 
   function getAnswers(answers) {
-    var out = _.clone(ANSWER_STYLES);
+    var out = _.clone(HIDDEN_ANSWER_STYLES);
     out.data = _.values(answers);
     return out;
   }
@@ -138,8 +149,11 @@ define(function (require) {
 
     function onMouseDown(e) {
       var canvasPos = getCanvasPos(canvas);
+      var points = chart.getPointsAtEvent(e);
+      point = _.find(points, function (p) {
+        return p.datasetLabel === 'input';
+      });
       canvas.addEventListener('mousemove', onMouseMove);
-      point = chart.getPointsAtEvent(e)[0];
       redraw(getMousePos(e, canvasPos));
       chart.options.animation = false;
     }
