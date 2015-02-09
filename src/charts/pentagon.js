@@ -95,8 +95,8 @@ define(function (require) {
     myCanvas = myCanvas.offsetParent;
 
     while(myCanvas) {
-      x += myCanvas.offsetLeft - myCanvas.scrollLeft;
-      y += myCanvas.offsetTop - myCanvas.scrollTop;
+      x += myCanvas.offsetLeft;
+      y += myCanvas.offsetTop;
       myCanvas = myCanvas.offsetParent;
     }
 
@@ -206,19 +206,6 @@ define(function (require) {
       redraw(getMousePos(e, canvasPos));
     }, 10);
 
-    function removeHandlers() {
-      if(Modernizr.touch) {
-        canvas.removeEventListener('touchstart', onTouchStart);
-        canvas.removeEventListener('touchend', onTouchEnd);
-        canvas.removeEventListener('touchmove', onTouchMove);
-      } else {
-        canvas.removeEventListener('mousedown', onMouseDown);
-        canvas.removeEventListener('mouseup', onMouseUp);
-        canvas.removeEventListener('mouseout', onMouseOut);
-        canvas.removeEventListener('mousemove', onMouseMove);
-      }
-    }
-
     function registerHandlers() {
       if(Modernizr.touch) {
         canvas.addEventListener('touchstart', onTouchStart);
@@ -259,7 +246,6 @@ define(function (require) {
       var dataset;
       var input;
       var result;
-      removeHandlers();
       _.each(chart.datasets, function (set) {
         if(set.label !== 'input') {
           dataset = set;
