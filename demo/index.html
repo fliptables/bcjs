@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Example</title>
+    <style>
+      html, body {
+        background-color: black;
+      }
+      .chart {
+        width: 500px;
+        height: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <div 
+      class="chart"
+      data-bc-chart
+      data-bc-serverbase="item_ratings.json"
+      data-bc-id="SOME_ID_1"></div>
+    <div 
+      class="chart"
+      data-bc-chart
+      data-bc-user="elliot@example.com"
+      data-bc-id="SOME_ID_2">
+    </div>
+      <!-- 
+        All bc-* attributes can be overridden by values specified on the 
+        data-bc-chart tags. This allows you to change user, hide behavior, 
+        or even serverbase per chart. 
+      -->
+    <script 
+      src="../src/libs/requirejs/require.js" 
+      data-main="../src/config" 
+      data-bc-user="jmorrin@example.com"
+      data-bc-serverbase="item_ratings.json"
+      data-bc-hide-avg
+      data-bc-auto
+      data-bc-api="DEMO_API"></script>
+      <script>
+        var BetterContext = BetterContext || [];
+        BetterContext.push(['ready', function () {
+          BetterContext.on('saved', function (event) {
+            //called when the items have been saved to the server
+            console.log('Page got saved event');
+            console.log(event);
+          });
+          BetterContext.on('timer', function (event) {
+            //called when the timer is reset.
+            console.log('timer start');
+            console.log(event);
+          });
+        }]);
+      </script>
+  </body>
+</html>

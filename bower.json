@@ -1,11 +1,32 @@
 {
-  "name": "Chart.js",
-  "version": "1.0.1-beta.4",
-  "description": "Simple HTML5 Charts using the canvas element",
-  "homepage": "https://github.com/nnnick/Chart.js",
-  "author": "nnnick",
-  "main": [
-    "Chart.min.js"
+  "name": "bcjs",
+  "version": "0.0.1",
+  "homepage": "https://github.com/getnashty/bcjs",
+  "authors": [
+    "James Morrin <treasonx@gmail.com>"
   ],
-  "dependencies": {}
+  "description": "Better-Context library",
+  "main": "src/BetterContext.js",
+  "moduleType": [
+    "amd",
+    "globals"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "lodash": "~3.0.1",
+    "chartjs": "~1.0.1",
+    "requirejs": "~2.1.15",
+    "URIjs": "~1.14.1",
+    "when": "~3.7.2",
+    "almond": "~0.3.0",
+    "modernizr": "~2.8.3"
+  }
 }
