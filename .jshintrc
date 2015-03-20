@@ -1,4 +1,3 @@
-
 {
   "asi": false,
   "bitwise": false,
@@ -71,5 +70,4 @@
   "quotmark": "single",
   "maxcomplexity": 10
 }
-
 
