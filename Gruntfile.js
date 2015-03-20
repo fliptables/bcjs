@@ -71,7 +71,10 @@ module.exports = function(grunt) {
         'maxlen': 120,
         'indent': 4,
         'maxerr': 250,
-        'predef': ['define', 'module'],
+        'globals': {
+          'JSON': true
+        },
+        'predef': ['define', 'module', 'JSON'],
         'quotmark': 'single',
         'maxcomplexity': 10
       },
