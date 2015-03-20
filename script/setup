@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-(npm install && bower install && ./script/build)
+(npm install && ./node_modules/.bin/bower install && ./script/build)
