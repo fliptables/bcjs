@@ -119,7 +119,7 @@ define(function (require) {
     var touch;
     var touchX;
     var touchY;
-    if (e.touches) {
+    if (e.touches && e.touches.length) {
       touch = e.touches[0];
       touchX = touch.pageX - canvasPos.left + window.pageXOffset;
       touchY = touch.pageY - canvasPos.top + window.pageYOffset;
@@ -148,6 +148,20 @@ define(function (require) {
       });
     }
 
+    function resetPoints(e, getPosFn) {
+      var canvasPos = getCanvasPos(canvas);
+      // Points are highlighted by ChartJS on hover and when active
+      // This will remove the highlighting and redraw the chart
+      chart.eachPoints(function (p) {
+        if(p.datasetLabel === 'input') {
+          p.fillColor = INPUT_STYLES.pointColor;
+          p.strokeColor = INPUT_STYLES.pointStrokeColor;
+        }
+      });
+      redraw(getPosFn(e, canvasPos));
+      point = undefined;
+    }
+
     function getPointFromEvent(e) {
       var points = chart.getPointsAtEvent(e);
       point = _.find(points, function (p) {
@@ -167,7 +181,7 @@ define(function (require) {
 
     function onTouchEnd(e) {
       canvas.removeEventListener('touchmove', onTouchMove);
-      point = undefined;
+      resetPoints(e, getTouchPos);
       chart.options.animation = true;
       e.preventDefault();
     }
@@ -181,9 +195,10 @@ define(function (require) {
       petTheDog();
     }
 
-    function onMouseUp() {
+
+    function onMouseUp(e) {
       canvas.removeEventListener('mousemove', onMouseMove);
-      point = undefined;
+      resetPoints(e, getMousePos);
       chart.options.animation = true;
     }
 
@@ -219,6 +234,11 @@ define(function (require) {
 
     function redraw(pos) {
       if(!point) {
+        return;
+      }
+
+      if(pos.x == null || pos.y == null) {
+        chart.update();
         return;
       }
 
@@ -290,6 +310,8 @@ define(function (require) {
     } else {
       canvas = ele;
     }
+
+    ele.style.cursor = 'pointer';
 
     dataStore.getRatingItems(options).then(function (resp) {
       var data = buildData(resp.results, resp.labels);
