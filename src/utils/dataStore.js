@@ -3,6 +3,7 @@ define(function (require) {
   var URI = require('URIjs/URI');
   var BASE_URI = '//www.bettercontext.com/api/user_ratings';
   var when = require('when');
+  var _ = require('lodash');
 
 	function makeRequest(uri, method){
 		var xhr = new XMLHttpRequest();
@@ -43,8 +44,25 @@ define(function (require) {
       this._user = user;
     },
     saveRatingItem: function (options, data) {
-      console.log('TODO IMPLEMENT SAVING', data);
-      return when();
+      var user = options.user || this._user;
+      var api = options.api || this._apiKey;
+      var id = options.id;
+      var url = options.serverbase || this._baseUrl || BASE_URI;
+
+      url = new URI(url);
+
+      url.search({
+        'user_id': user,
+        api: api,
+        id: id,
+        'item_id': data.id
+      });
+
+      _.each(data.result, function (rating) {
+        url.addQuery('rating[]', rating.value);
+      });
+
+      return makeRequest(url.toString(), 'POST');
     },
     getRatingItems: function (options) {
       var user = options.user || this._user;
@@ -55,10 +73,10 @@ define(function (require) {
       url = new URI(url);
 
       url.search({
-        user: user,
+        'user_id': user,
         api: api,
         id: id,
-        item: id
+        'items[]': id
       });
 
       return makeRequest(url.toString()).then(function(data) {
@@ -67,9 +85,6 @@ define(function (require) {
           results: data[id]
         };
       });
-    },
-    saveRating: function () {
-
     }
   };
 
