@@ -49,6 +49,8 @@ define(function (require) {
       var user = options.user || this._user;
       var api = options.api || this._apiKey;
       var url = options.serverbase || this._baseUrl || BASE_URI;
+      var ratingKey = encodeURIComponent('rating[]');
+      var listQuery = '';
       var list = _.map(data, function (val) {
         return val.value;
       });
@@ -63,11 +65,16 @@ define(function (require) {
         'user_id': user,
         api: api,
         'site_id': options['site-id'],
-        'item_id': data.id,
-        'rating[]': list
+        'item_id': options.id
       });
 
-      return makeRequest(url.toString(), 'POST');
+      _.each(list, function (rating) {
+        listQuery += '&' + ratingKey + '=' + rating;
+      });
+
+      url = url.toString() + encodeURIComponent(listQuery);
+
+      return makeRequest(url, 'POST');
     },
     getRatingItems: function (options) {
       var user = options.user || this._user;
@@ -89,10 +96,23 @@ define(function (require) {
       });
 
       return makeRequest(url.toString()).then(function(data) {
-        return {
-          labels: data.labels,
-          results: data[id]
-        };
+        var out = _.transform(data[id], function (out, item, key) {
+          var results;
+          var ratings;
+          if(key.indexOf('m') === 0) {
+            results = out.results || {};
+            results[key] = item;
+            out.results = results;
+          } else if(key.indexOf('u') === 0) {
+            ratings = out.ratings || {};
+            ratings[key] = item;
+            out.ratings = ratings;
+          }
+          // unknown key type
+          return out;
+        });
+        out.labels = data.labels;
+        return out;
       });
     }
   };
