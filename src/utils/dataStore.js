@@ -1,7 +1,9 @@
 define(function (require) {
 
   var URI = require('URIjs/URI');
-  var BASE_URI = '//www.bettercontext.com/api/user_ratings';
+  var BASE_URI = '//www.bettercontext.com/api/';
+  var USER_ROUTE = 'user_ratings';
+  var ITEM_ROUTE = 'item_ratings';
   var when = require('when');
   var _ = require('lodash');
 
@@ -46,20 +48,23 @@ define(function (require) {
     saveRatingItem: function (options, data) {
       var user = options.user || this._user;
       var api = options.api || this._apiKey;
-      var id = options.id;
       var url = options.serverbase || this._baseUrl || BASE_URI;
+      var list = _.map(data, function (val) {
+        return val.value;
+      });
 
       url = new URI(url);
+
+      if(!options.serverbase) {
+        url.segment(USER_ROUTE);
+      }
 
       url.search({
         'user_id': user,
         api: api,
-        id: id,
-        'item_id': data.id
-      });
-
-      _.each(data.result, function (rating) {
-        url.addQuery('rating[]', rating.value);
+        'site_id': options['site-id'],
+        'item_id': data.id,
+        'rating[]': list
       });
 
       return makeRequest(url.toString(), 'POST');
@@ -72,10 +77,14 @@ define(function (require) {
 
       url = new URI(url);
 
+      if(!options.serverbase) {
+        url.segment(ITEM_ROUTE);
+      }
+
       url.search({
         'user_id': user,
         api: api,
-        id: id,
+        'site_id': options['site-id'],
         'items[]': id
       });
 
