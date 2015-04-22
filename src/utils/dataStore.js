@@ -7,7 +7,7 @@ define(function (require) {
   var when = require('when');
   var _ = require('lodash');
 
-	function makeRequest(uri, method){
+	function makeRequest(uri, method, params){
 		var xhr = new XMLHttpRequest();
     var defer = when.defer();
     method = method || 'GET';
@@ -25,8 +25,11 @@ define(function (require) {
         }
 			}
 		};
-		xhr.open(method, uri, true);
-		xhr.send();
+    xhr.open(method, uri, true);
+    if (method === 'POST') {
+      xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    }
+		xhr.send(params);
     return defer.promise;
 	}
 
@@ -51,6 +54,7 @@ define(function (require) {
       var url = options.serverbase || this._baseUrl || BASE_URI;
       var ratingKey = encodeURIComponent('rating[]');
       var listQuery = '';
+      var params = '';
       var list = _.map(data, function (val) {
         return val.value;
       });
@@ -61,20 +65,15 @@ define(function (require) {
         url.segment(USER_ROUTE);
       }
 
-      url.search({
-        'user_id': user,
-        api: api,
-        'site_id': options['site-id'],
-        'item_id': options.id
-      });
-
       _.each(list, function (rating) {
         listQuery += '&' + ratingKey + '=' + rating;
       });
 
-      url = url.toString() + encodeURIComponent(listQuery);
+      url = url.toString()+'?';
+      params = 'api='+api+'&site_id='+options['site-id']+'&user_id='+user+'&item_id='+options.id;
+      params += listQuery;
 
-      return makeRequest(url, 'POST');
+      return makeRequest(url, 'POST', params);
     },
     getRatingItems: function (options) {
       var user = options.user || this._user;

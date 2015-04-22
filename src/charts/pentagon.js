@@ -19,22 +19,24 @@ define(function (require) {
     datasetStrokeWidth : 2,
     tooltipTemplate: ' ',
     customTooltips: _.noop,
-    scaleLineColor: 'rgba(255,255,255,0.2)',
+    scaleLineColor: '#DCD7E0',
     datasetFill : true
   };
 
+  //TODO We need to open this up
+  //so any publisher can modify colors
   var INPUT_STYLES = {
     // this label value is important! We use this to identify draggable input
     // points
     label: 'input',
-    fillColor: 'rgba(231, 76, 60,0.7)',
+    fillColor: 'rgba(231, 76, 60,0.4)',
     pointDot : true,
-    strokeColor: 'rgba(241, 196, 15,1.0)',
-    pointColor: 'rgba(241, 196, 15,1.0)',
-    pointStrokeColor: 'rgba(236, 240, 241,1.0)',
+    strokeColor: 'rgba(174, 77, 70, 1)',
+    pointColor: '#FFFFFF',
+    pointStrokeColor: '#9C6EC5',
     pointHighlightFill: 'rgba(84, 236, 206, 1)',
     pointHighlightStroke: 'rgba(22, 160, 133,1.0)',
-    scaleLineColor: 'rgba(255,255,255,0.2)',
+    scaleLineColor: '#DCD7E0',
     pointLabelFontFamily : '"Open Sans", Helvetica, Arial',
     pointLabelFontStyle : 'bold',
     pointLabelFontSize : 10,
@@ -48,7 +50,7 @@ define(function (require) {
 		pointStrokeColor: 'rgba(0,0,0,0)',
 		pointHighlightFill: 'rgba(0,0,0,0)',
 		pointHighlightStroke: 'rgba(0,0,0,0)',
-    scaleLineColor: 'rgba(255,255,255,0.2)',
+    scaleLineColor: '#DCD7E0',
     pointLabelFontFamily : '"Open Sans", Helvetica, Arial',
     pointLabelFontStyle : 'bold',
     pointLabelFontSize : 10,
@@ -67,9 +69,10 @@ define(function (require) {
     pointHighlightStroke: transparent
   };
 
-  function getInput() {
+  function getInput(ratings) {
     var out = _.clone(INPUT_STYLES);
-    out.data = [1, 1, 1, 1, 1];
+    ratings = ratings || [1, 1, 1, 1, 1];
+    out.data = _.values(ratings);
     return out;
   }
 
@@ -79,12 +82,12 @@ define(function (require) {
     return out;
   }
 
-  function buildData(answers, labels) {
+  function buildData(answers, labels, ratings) {
     return {
       labels: _.values(labels),
       datasets: [
         getAnswers(answers),
-        getInput()
+        getInput(ratings)
       ]
     };
   }
@@ -259,6 +262,7 @@ define(function (require) {
       else {
         point.value = newVal;
       }
+
       chart.update();
     }
 
@@ -275,6 +279,9 @@ define(function (require) {
       });
 
       result = _.map(input.points, function (point) {
+        //Make sure values are numbers, not strings
+        point.value = parseFloat(point.value);
+
         return {
           label: point.label,
           value: point.value.toFixed(2)
@@ -314,8 +321,7 @@ define(function (require) {
     ele.style.cursor = 'pointer';
 
     dataStore.getRatingItems(options).then(function (resp) {
-      var data = buildData(resp.results, resp.labels);
-      console.log(data);
+      var data = buildData(resp.results, resp.labels, resp.ratings);
       chart = new Chart(canvas.getContext('2d')).Radar(data, options);
       registerHandlers();
     }, function (err) {
