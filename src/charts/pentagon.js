@@ -16,7 +16,7 @@ define(function (require) {
     pointDotStrokeWidth : 3,
     pointHitDetectionRadius : 10,
     datasetStroke : true,
-    datasetStrokeWidth : 2,
+    datasetStrokeWidth : 3,
     tooltipTemplate: ' ',
     customTooltips: _.noop,
     scaleLineColor: '#DCD7E0',
@@ -29,13 +29,13 @@ define(function (require) {
     // this label value is important! We use this to identify draggable input
     // points
     label: 'input',
-    fillColor: 'rgba(231, 76, 60,0.4)',
+    fillColor: 'rgba(205, 59, 248, 0.26)',
     pointDot : true,
-    strokeColor: 'rgba(174, 77, 70, 1)',
-    pointColor: '#FFFFFF',
-    pointStrokeColor: '#9C6EC5',
-    pointHighlightFill: 'rgba(84, 236, 206, 1)',
-    pointHighlightStroke: 'rgba(22, 160, 133,1.0)',
+    strokeColor: 'rgba(205, 57, 255)',
+    pointColor: 'rgba(0,0,0,0)',
+    pointStrokeColor: 'rgba(0,0,0,0)',
+    pointHighlightFill: '#FFF',
+    pointHighlightStroke: 'rgba(205, 59, 248, 0.74)',
     scaleLineColor: '#DCD7E0',
     pointLabelFontFamily : '"Open Sans", Helvetica, Arial',
     pointLabelFontStyle : 'bold',
@@ -44,8 +44,8 @@ define(function (require) {
   };
 
   var ANSWER_STYLES = {
-		fillColor: 'rgba(52, 73, 94,0.4)',
-		strokeColor: 'rgba(41, 128, 185,0.6)',
+		fillColor: 'rgba(145, 203, 249, 0.5)',
+		strokeColor: 'rgba(0, 0, 0, 0)',
 		pointColor: 'rgba(0,0,0,0)',
 		pointStrokeColor: 'rgba(0,0,0,0)',
 		pointHighlightFill: 'rgba(0,0,0,0)',
@@ -76,17 +76,28 @@ define(function (require) {
     return out;
   }
 
-  function getAnswers(answers) {
-    var out = _.clone(HIDDEN_ANSWER_STYLES);
+  function getAnswers(answers, userRating) {
+    var styles;
+    var out;
+
+    //Only show average if a user rating already exists
+    if (userRating) {
+      styles = ANSWER_STYLES;
+    } else {
+      styles = HIDDEN_ANSWER_STYLES;
+    }
+
+    out = _.clone(styles);
     out.data = _.values(answers);
     return out;
   }
 
   function buildData(answers, labels, ratings) {
+    var userRating = ratings;
     return {
       labels: _.values(labels),
       datasets: [
-        getAnswers(answers),
+        getAnswers(answers, userRating),
         getInput(ratings)
       ]
     };
