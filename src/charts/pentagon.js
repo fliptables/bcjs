@@ -12,7 +12,7 @@ define(function (require) {
     scaleShowLabels : false,
     scaleBeginAtZero : true,
     angleLineColor : 'white',
-    pointDotRadius : 5,
+    pointDotRadius : 3,
     pointDotStrokeWidth : 3,
     pointHitDetectionRadius : 10,
     datasetStroke : true,
@@ -29,13 +29,13 @@ define(function (require) {
     // this label value is important! We use this to identify draggable input
     // points
     label: 'input',
-    fillColor: 'rgba(205, 59, 248, 0.26)',
+    fillColor: 'rgba(237, 29, 36, 0.2)',
     pointDot : true,
-    strokeColor: 'rgba(205, 57, 255)',
-    pointColor: 'rgba(0,0,0,0)',
-    pointStrokeColor: 'rgba(0,0,0,0)',
-    pointHighlightFill: '#FFF',
-    pointHighlightStroke: 'rgba(205, 59, 248, 0.74)',
+    strokeColor: 'rgba(237, 29, 36, 0.8)',
+    pointColor: 'rgba(255,255,255,1)',
+    pointStrokeColor: 'rgba(237, 29, 36, 1)',
+    pointHighlightFill: 'rgba(237, 29, 36, 1)',
+    pointHighlightStroke: '#fff',
     scaleLineColor: '#DCD7E0',
     pointLabelFontFamily : '"Open Sans", Helvetica, Arial',
     pointLabelFontStyle : 'bold',
@@ -44,7 +44,7 @@ define(function (require) {
   };
 
   var ANSWER_STYLES = {
-		fillColor: 'rgba(145, 203, 249, 0.5)',
+		fillColor: 'rgba(91, 197, 191, 0.60)',
 		strokeColor: 'rgba(0, 0, 0, 0)',
 		pointColor: 'rgba(0,0,0,0)',
 		pointStrokeColor: 'rgba(0,0,0,0)',
