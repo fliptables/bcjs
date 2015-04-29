@@ -19,8 +19,13 @@ define(function (require) {
     api = autoRender.render(settings);
   }
 
+  function scan() {
+    autoRender.render(settings);
+  }
+
   window.BetterContext = {
     push: runTask,
+    scan: scan,
     ready: function (fn) {
       fn();
     },

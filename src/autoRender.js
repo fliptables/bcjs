@@ -19,9 +19,10 @@ define(function (require) {
 
   return {
     render: function (settings) {
-      var eles = document.querySelectorAll('*[data-bc-chart]');
+      var eles = document.querySelectorAll('*[data-bc-chart]:not(.rendered)');
       var dataStore = new DataStore(settings);
       _.each(eles, function (ele) {
+        ele.classList.add('rendered');
         renderChart(ele, settings, dataStore, emitter);
       });
       return emitter;
