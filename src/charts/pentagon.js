@@ -322,6 +322,7 @@ define(function (require) {
 
     if(ele.tagName.toLowerCase() !== 'canvas') {
       canvas = document.createElement('canvas');
+      ele.innerHTML = '';
       ele.appendChild(canvas);
       canvas.height = ele.clientHeight;
       canvas.width = ele.clientWidth;
