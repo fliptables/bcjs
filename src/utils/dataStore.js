@@ -4,6 +4,9 @@ define(function (require) {
   var BASE_URI = '//www.bettercontext.com/api/';
   var USER_ROUTE = 'user_ratings';
   var ITEM_ROUTE = 'item_ratings';
+  var FILTER_ROUTE = 'filtered_items';
+  var LABEL_ROUTE = 'labels';
+  var AVG_ROUTE = 'avg_items';
   var when = require('when');
   var _ = require('lodash');
 
@@ -75,6 +78,33 @@ define(function (require) {
 
       return makeRequest(url, 'POST', params);
     },
+    getQueriedItems: function (options, result) {
+      var api = options.api || this._apiKey;
+      var url = options.serverbase || this._baseUrl || BASE_URI;
+      var listQuery = '';
+      var list = _.map(result, function (val) {
+        return val.value;
+      });
+
+      url = new URI(url);
+
+      if(!options.serverbase) {
+        url.segment(FILTER_ROUTE);
+      }
+
+      _.each(list, function (rating) {
+        listQuery += '&metrics[]=' + rating;
+      });
+
+      url.search({
+        api: api,
+        'site_id': options['site-id']
+      });
+
+      return makeRequest(url.toString()+listQuery).then(function(data) {
+        return data;
+      });
+    },
     getRatingItems: function (options) {
       var user = options.user || this._user;
       var api = options.api || this._apiKey;
@@ -113,9 +143,53 @@ define(function (require) {
         out.labels = data.labels;
         return out;
       });
+    },
+    getLabels: function (options) {
+      var api = options.api || this._apiKey;
+      var url = options.serverbase || this._baseUrl || BASE_URI;
+
+      url = new URI(url);
+
+      if(!options.serverbase) {
+        url.segment(LABEL_ROUTE);
+      }
+
+      url.search({
+        api: api,
+        'site_id': options['site-id']
+      });
+
+      return makeRequest(url.toString()).then(function(data) {
+        return data;
+      });
+    },
+    getAvg: function (options, ids) {
+      var api = options.api || this._apiKey;
+      var url = options.serverbase || this._baseUrl || BASE_URI;
+      var listQuery = '';
+      ids = ids.substring(1, ids.length - 1);
+      ids = ids.split(',');
+
+      url = new URI(url);
+
+      if(!options.serverbase) {
+        url.segment(AVG_ROUTE);
+      }
+
+      _.each(ids, function (id) {
+        listQuery += '&m[]=' + id.trim();
+      });
+
+      url.search({
+        api: api,
+        'site_id': options['site-id']
+      });
+
+      return makeRequest(url.toString()+listQuery).then(function(data) {
+        return data;
+      });
     }
   };
 
   return DataStore;
 });
-

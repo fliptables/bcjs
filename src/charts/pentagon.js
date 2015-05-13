@@ -59,7 +59,7 @@ define(function (require) {
 
 	var transparent = 'rgba(0,0,0,0)';
 
-  var HIDDEN_ANSWER_STYLES = {
+  var HIDDEN_STYLES = {
     fillColor: transparent,
     pointDot : false,
     strokeColor: transparent,
@@ -69,22 +69,29 @@ define(function (require) {
     pointHighlightStroke: transparent
   };
 
-  function getInput(ratings) {
-    var out = _.clone(INPUT_STYLES);
+  function getInput(ratings, chartType) {
+    var out;
+
+    if (chartType === 'avg') {
+      out = _.clone(HIDDEN_STYLES);
+    } else {
+      out = _.clone(INPUT_STYLES);
+    }
+
     ratings = ratings || [1, 1, 1, 1, 1];
     out.data = _.values(ratings);
     return out;
   }
 
-  function getAnswers(answers, userRating) {
+  function getAnswers(answers, userRating, chartType) {
     var styles;
     var out;
 
     //Only show average if a user rating already exists
-    if (userRating) {
+    if (userRating || chartType === 'avg') {
       styles = ANSWER_STYLES;
     } else {
-      styles = HIDDEN_ANSWER_STYLES;
+      styles = HIDDEN_STYLES;
     }
 
     out = _.clone(styles);
@@ -92,14 +99,24 @@ define(function (require) {
     return out;
   }
 
-  function buildData(answers, labels, ratings) {
-    var userRating = ratings;
+  function buildData(data, chartType) {
+    var ratings = data.ratings;
+    var results = data.results;
+    var labels = data.labels;
+    var dataSets = [
+      getAnswers(results, ratings, chartType),
+      getInput(ratings, chartType)
+    ];
+
+    if (chartType === 'query') {
+      dataSets = [
+        getInput(ratings, chartType)
+      ];
+    }
+
     return {
       labels: _.values(labels),
-      datasets: [
-        getAnswers(answers, userRating),
-        getInput(ratings)
-      ]
+      datasets: dataSets
     };
   }
 
@@ -154,8 +171,16 @@ define(function (require) {
     var dogHandle;
 
     function petTheDog() {
+      var cb;
+
+      if (settings.query) {
+        cb = sendQuery;
+      } else {
+        cb = completeRating;
+      }
+
       clearTimeout(dogHandle);
-      dogHandle = setTimeout(completeRating, options.wait);
+      dogHandle = setTimeout(cb, options.wait);
       emitter.emit('timer', {
         id: options.id,
         target: chart.chart.canvas
@@ -320,26 +345,104 @@ define(function (require) {
       });
     }
 
-    if(ele.tagName.toLowerCase() !== 'canvas') {
-      canvas = document.createElement('canvas');
-      ele.innerHTML = '';
-      ele.appendChild(canvas);
-      canvas.height = ele.clientHeight;
-      canvas.width = ele.clientWidth;
-    } else {
-      canvas = ele;
+    function sendQuery() {
+      var dataset;
+      var input;
+      var result;
+      _.each(chart.datasets, function (set) {
+        if(set.label !== 'input') {
+          dataset = set;
+        } else {
+          input = set;
+        }
+      });
+
+      result = _.map(input.points, function (point) {
+        //Make sure values are numbers, not strings
+        point.value = parseFloat(point.value);
+
+        return {
+          label: point.label,
+          value: point.value.toFixed(2)
+        };
+      });
+
+      dataStore.getQueriedItems(options, result).then(function (resp) {
+        emitter.emit('queried', {
+          id: options.id,
+          target: chart.chart.canvas,
+          result: result,
+          items: resp
+        });
+      }, function (err) {
+        console.log('error saving');
+        console.error(err);
+      });
     }
 
     ele.style.cursor = 'pointer';
 
-    dataStore.getRatingItems(options).then(function (resp) {
-      var data = buildData(resp.results, resp.labels, resp.ratings);
+    function insertChart(chartEle) {
+      if(chartEle.tagName.toLowerCase() !== 'canvas') {
+        canvas = document.createElement('canvas');
+        chartEle.innerHTML = '';
+        chartEle.appendChild(canvas);
+        canvas.height = chartEle.clientHeight;
+        canvas.width = chartEle.clientWidth;
+      } else {
+        canvas = chartEle;
+      }
+    }
+
+    function queryChart() {
+      dataStore.getLabels(options).then(function (resp) {
+        initChart(resp, 'query');
+
+      }, function (err) {
+        console.log('error getting data for query chart');
+        console.error(err);
+      });
+    }
+
+    function avgChart() {
+      dataStore.getAvg(options, settings.avg).then(function (resp) {
+        initChart(resp, 'avg');
+
+      }, function (err) {
+        console.log('error getting data for avg chart');
+        console.error(err);
+      });
+    }
+
+    function ratingChart() {
+      dataStore.getRatingItems(options).then(function (resp) {
+        initChart(resp, 'rating');
+
+      }, function (err) {
+        console.log('error getting data for rating chart');
+        console.error(err);
+      });
+    }
+
+    function initChart(resp, chartType) {
+      //Only insert canvas once we have the data so user can show
+      //loading animation
+      insertChart(ele);
+
+      var data = buildData(resp, chartType);
       chart = new Chart(canvas.getContext('2d')).Radar(data, options);
       registerHandlers();
-    }, function (err) {
-      console.log('error getting data');
-      console.error(err);
-    });
+    }
+
+    //We're going to check and see what kind
+    //of chart it is before we do anything else
+    if (settings.query) {
+      queryChart();
+    } else if (settings.avg) {
+      avgChart();
+    } else {
+      ratingChart();
+    }
 
   };
 
