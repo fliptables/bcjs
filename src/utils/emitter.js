@@ -12,8 +12,9 @@ define(function (require) {
 
   Emitter.prototype = {
     on: function (topic, handler) {
-      var topics = this._topics[topic] = [];
-      topics.push(handler);
+      var subscribers = this._topics[topic] || [];
+      subscribers.push(handler);
+      this._topics[topic] = subscribers;
     },
     off: function (topic, handler) {
       var topics = this._topics[topic];
@@ -23,10 +24,10 @@ define(function (require) {
     },
     emit: function (topic) {
 
-      var handlers = this._topics[topic];
+      var subscribers = this._topics[topic];
       var args = _.toArray(arguments).slice(1);
 
-      _.each(handlers, function (handler) {
+      _.each(subscribers, function (handler) {
         invokeHandler(handler, args);
       });
 
