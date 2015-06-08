@@ -17,6 +17,9 @@ define(function (require) {
 
   if(settings.auto) {
     api = autoRender.render(settings);
+    utils.polling(100, 2000, function () {
+      return autoRender.renderNew(settings);
+    }).start();
   }
 
   function scan() {

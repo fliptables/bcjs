@@ -18,13 +18,31 @@ define(function (require) {
   }
 
   return {
-    render: function (settings) {
-      var eles = document.querySelectorAll('*[data-bc-chart]:not(.rendered)');
+    _getElements: function () {
+      return document.querySelectorAll('*[data-bc-chart]:not(.rendered)');
+    },
+    renderNew: function (settings) {
+
+      var eles = this._getElements();
+
+      if(eles.length) {
+        this._render(eles, settings);
+        return true;
+      } else {
+        return false;
+      }
+
+    },
+    _render: function (eles, settings) {
       var dataStore = new DataStore(settings);
       _.each(eles, function (ele) {
         ele.classList.add('rendered');
         renderChart(ele, settings, dataStore, emitter);
       });
+    },
+    render: function (settings) {
+      var eles = this._getElements();
+      this._render(eles, settings);
       return emitter;
     }
   };
