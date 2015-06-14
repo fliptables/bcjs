@@ -1,7 +1,7 @@
 define(function (require) {
 
   var URI = require('URIjs/URI');
-  var BASE_URI = '//www.bettercontext.com/api/';
+  var BASE_URI = '//api.bettercontext.com/api/';
   var USER_ROUTE = 'user_ratings';
   var ITEM_ROUTE = 'item_ratings';
   var FILTER_ROUTE = 'filtered_items';
