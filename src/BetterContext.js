@@ -7,13 +7,19 @@ define(function (require) {
   var tasks = window.BetterContext || [];
   var api;
   var settings;
+  var wait;
 
   if(!script) {
     return;
   }
 
   settings = utils.gatherSettings(script);
-  settings.wait = 3000;
+
+  wait = parseInt(settings.wait, 10);
+  if(!_.isNumber(wait)) {
+    wait = 3000;
+  }
+  settings.wait = wait;
 
   if(settings.auto) {
     api = autoRender.render(settings);
