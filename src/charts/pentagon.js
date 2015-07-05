@@ -273,6 +273,10 @@ define(function (require) {
       if(Modernizr.touch) {
         canvas.addEventListener('touchstart', onTouchStart);
         canvas.addEventListener('touchend', onTouchEnd);
+        canvas.addEventListener('mousemove', onMouseMove);
+        canvas.addEventListener('mousedown', onMouseDown);
+        canvas.addEventListener('mouseup', onMouseUp);
+        canvas.addEventListener('mouseout', onMouseOut);
       } else {
         canvas.addEventListener('mousemove', onMouseMove);
         canvas.addEventListener('mousedown', onMouseDown);
