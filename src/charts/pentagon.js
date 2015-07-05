@@ -236,15 +236,22 @@ define(function (require) {
 
 
     function onMouseUp(e) {
-      canvas.removeEventListener('mousemove', onMouseMove);
       resetPoints(e, getMousePos);
       chart.options.animation = true;
+      if (chart.bcChartType !== 'rating') {
+        canvas.removeEventListener('mousemove', onMouseMove);
+      }
     }
 
     function onMouseOut() {
-      canvas.removeEventListener('mousemove', onMouseMove);
       point = undefined;
       chart.options.animation = true;
+      if (chart.bcChartType === 'rating') {
+        chart.datasets[0].fillColor = ANSWER_STYLES.fillColor;
+        chart.update();
+      } else {
+        canvas.removeEventListener('mousemove', onMouseMove);
+      }
     }
 
     onTouchMove = _.debounce(function (e) {
@@ -256,7 +263,9 @@ define(function (require) {
 
     onMouseMove = _.debounce(function (e) {
       var canvasPos = getCanvasPos(canvas);
-      petTheDog();
+      if (chart.bcChartType === 'rating') {
+        chart.datasets[0].fillColor = 'rgba(0,0,0,0)';
+      }
       redraw(getMousePos(e, canvasPos));
     }, 10);
 
@@ -265,6 +274,7 @@ define(function (require) {
         canvas.addEventListener('touchstart', onTouchStart);
         canvas.addEventListener('touchend', onTouchEnd);
       } else {
+        canvas.addEventListener('mousemove', onMouseMove);
         canvas.addEventListener('mousedown', onMouseDown);
         canvas.addEventListener('mouseup', onMouseUp);
         canvas.addEventListener('mouseout', onMouseOut);
@@ -397,6 +407,7 @@ define(function (require) {
     function queryChart() {
       dataStore.getLabels(options).then(function (resp) {
         initChart(resp, 'query');
+        chart.bcChartType = 'query';
 
       }, function (err) {
         console.log('error getting data for query chart');
@@ -407,6 +418,7 @@ define(function (require) {
     function avgChart() {
       dataStore.getAvg(options, settings.avg).then(function (resp) {
         initChart(resp, 'avg');
+        chart.bcChartType = 'avg';
 
       }, function (err) {
         console.log('error getting data for avg chart');
@@ -417,6 +429,7 @@ define(function (require) {
     function ratingChart() {
       dataStore.getRatingItems(options).then(function (resp) {
         initChart(resp, 'rating');
+        chart.bcChartType = 'rating';
 
       }, function (err) {
         console.log('error getting data for rating chart');
