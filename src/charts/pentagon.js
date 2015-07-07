@@ -5,8 +5,8 @@ define(function (require) {
   var _ = require('lodash');
   var DEFAULTS = {
     scaleOverride: true,
-    scaleSteps: 10,
-    scaleStepWidth: 1,
+    scaleSteps: 2,
+    scaleStepWidth: 5,
     scaleShowLine : true,
     angleShowLineOut : false,
     scaleShowLabels : false,
