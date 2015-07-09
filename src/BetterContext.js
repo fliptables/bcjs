@@ -28,8 +28,8 @@ define(function (require) {
     }).start();
   }
 
-  function scan() {
-    autoRender.render(settings);
+  function scan(specificSelector) {
+    autoRender.render(settings, specificSelector);
   }
 
   window.BetterContext = {

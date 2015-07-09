@@ -18,8 +18,10 @@ define(function (require) {
   }
 
   return {
-    _getElements: function () {
-      return document.querySelectorAll('*[data-bc-chart]:not(.rendered)');
+    _getElements: function (specificSelector) {
+      var notRendered = '*[data-bc-chart]:not(.rendered)';
+      specificSelector = specificSelector ? specificSelector +','+ notRendered  : notRendered;
+      return document.querySelectorAll(specificSelector);
     },
     renderNew: function (settings) {
 
@@ -40,8 +42,8 @@ define(function (require) {
         renderChart(ele, settings, dataStore, emitter);
       });
     },
-    render: function (settings) {
-      var eles = this._getElements();
+    render: function (settings, specificSelector) {
+      var eles = this._getElements(specificSelector);
       this._render(eles, settings);
       return emitter;
     }
