@@ -166,6 +166,7 @@ define(function (require) {
     getAvg: function (options, ids) {
       var api = options.api || this._apiKey;
       var user = options.user;
+      var userSecond = options['user-second'] || '';
       var url = options.serverbase || this._baseUrl || BASE_URI;
       var listQuery = '';
       ids = ids.substring(1, ids.length - 1);
@@ -181,7 +182,14 @@ define(function (require) {
         listQuery += '&m[]=' + id.trim();
       });
 
-      if (user) {
+      if (userSecond) {
+        url.search({
+          api: api,
+          'user_id': user,
+          'user2_id': userSecond,
+          'site_id': options['site-id']
+        });
+      } else if (user) {
         url.search({
           api: api,
           'user_id': user,

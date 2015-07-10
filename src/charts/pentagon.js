@@ -44,12 +44,26 @@ define(function (require) {
   };
 
   var ANSWER_STYLES = {
-		fillColor: 'rgba(91, 197, 191, 0.60)',
-		strokeColor: 'rgba(0, 0, 0, 0)',
-		pointColor: 'rgba(0,0,0,0)',
-		pointStrokeColor: 'rgba(0,0,0,0)',
-		pointHighlightFill: 'rgba(0,0,0,0)',
-		pointHighlightStroke: 'rgba(0,0,0,0)',
+    fillColor: 'rgba(91, 197, 191, 0.60)',
+    strokeColor: 'rgba(0, 0, 0, 0)',
+    pointColor: 'rgba(0,0,0,0)',
+    pointStrokeColor: 'rgba(0,0,0,0)',
+    pointHighlightFill: 'rgba(0,0,0,0)',
+    pointHighlightStroke: 'rgba(0,0,0,0)',
+    scaleLineColor: '#DCD7E0',
+    pointLabelFontFamily : '"Open Sans", Helvetica, Arial',
+    pointLabelFontStyle : 'bold',
+    pointLabelFontSize : 10,
+    pointLabelFontColor : '#fff'
+  };
+
+  var SECONDARY_STYLES = {
+    fillColor: 'rgba(135, 117, 150, 0.3)',
+    strokeColor: 'rgba(252, 255, 148, 0.0)',
+    pointColor: 'rgba(0,0,0,0)',
+    pointStrokeColor: 'rgba(0,0,0,0)',
+    pointHighlightFill: 'rgba(0,0,0,0)',
+    pointHighlightStroke: 'rgba(0,0,0,0)',
     scaleLineColor: '#DCD7E0',
     pointLabelFontFamily : '"Open Sans", Helvetica, Arial',
     pointLabelFontStyle : 'bold',
@@ -99,14 +113,31 @@ define(function (require) {
     return out;
   }
 
+  function getSecondaryAnswers(answers) {
+    var styles;
+    var out;
+    styles = SECONDARY_STYLES;
+    out = _.clone(styles);
+    out.data = _.values(answers);
+    return out;
+  }
+
   function buildData(data, chartType) {
     var ratings = data.ratings;
     var results = data.results;
+    var resultsSecondary = data.resultsSecondary;
     var labels = data.labels;
     var dataSets = [
       getAnswers(results, ratings, chartType),
       getInput(ratings, chartType)
     ];
+
+    if (resultsSecondary) {
+      dataSets = [
+        getSecondaryAnswers(resultsSecondary),
+        getAnswers(results, ratings, chartType)
+      ];
+    }
 
     if (chartType === 'query') {
       dataSets = [
