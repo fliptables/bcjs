@@ -336,7 +336,6 @@ define(function (require) {
       dataStore.saveRatingItem(options, result).then(function () {
         console.log('results saved');
         _.extend(dataset, ANSWER_STYLES);
-        chart.update();
         emitter.emit('saved', {
           id: options.id,
           target: chart.chart.canvas,
