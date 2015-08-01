@@ -200,6 +200,7 @@ define(function (require) {
     var chart;
     var point;
     var dogHandle;
+    var mouseActive = false;
 
     function petTheDog() {
       var cb;
@@ -241,6 +242,7 @@ define(function (require) {
 
     function onTouchStart(e) {
       var canvasPos = getCanvasPos(canvas);
+      mouseActive = true;
       getPointFromEvent(e);
       canvas.addEventListener('touchmove', onTouchMove);
       redraw(getTouchPos(e, canvasPos));
@@ -250,6 +252,7 @@ define(function (require) {
     }
 
     function onTouchEnd(e) {
+      mouseActive = false;
       canvas.removeEventListener('touchmove', onTouchMove);
       resetPoints(e, getTouchPos);
       chart.options.animation = true;
@@ -258,6 +261,7 @@ define(function (require) {
 
     function onMouseDown(e) {
       var canvasPos = getCanvasPos(canvas);
+      mouseActive = true;
       getPointFromEvent(e);
       canvas.addEventListener('mousemove', onMouseMove);
       redraw(getMousePos(e, canvasPos));
@@ -267,6 +271,7 @@ define(function (require) {
 
 
     function onMouseUp(e) {
+      mouseActive = true;
       resetPoints(e, getMousePos);
       chart.options.animation = true;
       if (chart.bcChartType !== 'rating') {
@@ -275,6 +280,7 @@ define(function (require) {
     }
 
     function onMouseOut() {
+      mouseActive = false;
       point = undefined;
       chart.options.animation = true;
       if (chart.bcChartType === 'rating') {
@@ -287,6 +293,7 @@ define(function (require) {
 
     onTouchMove = _.debounce(function (e) {
       var canvasPos = getCanvasPos(canvas);
+      mouseActive = true;
       petTheDog();
       redraw(getTouchPos(e, canvasPos));
       e.preventDefault();
@@ -294,6 +301,7 @@ define(function (require) {
 
     onMouseMove = _.debounce(function (e) {
       var canvasPos = getCanvasPos(canvas);
+      mouseActive = true;
       if (chart.bcChartType === 'rating') {
         chart.datasets[0].fillColor = 'rgba(0,0,0,0)';
       }
@@ -366,7 +374,12 @@ define(function (require) {
 
       dataStore.saveRatingItem(options, result).then(function () {
         console.log('results saved');
-        _.extend(dataset, ANSWER_STYLES);
+        if (mouseActive && chart.bcChartType === 'rating') {
+          _.extend(dataset, HIDDEN_STYLES);
+        } else {
+          _.extend(dataset, ANSWER_STYLES);
+        }
+        chart.update();
         emitter.emit('saved', {
           id: options.id,
           target: chart.chart.canvas,
