@@ -56,6 +56,7 @@ define(function (require) {
       var api = options.api || this._apiKey;
       var url = options.serverbase || this._baseUrl || BASE_URI;
       var ratingKey = encodeURIComponent('rating[]');
+      var uuid = options.uuid;
       var listQuery = '';
       var params = '';
       var list = _.map(data, function (val) {
@@ -73,7 +74,7 @@ define(function (require) {
       });
 
       url = url.toString()+'?';
-      params = 'api='+api+'&site_id='+options['site-id']+'&user_id='+user+'&item_id='+options.id;
+      params = 'api='+api+'&site_id='+options['site-id']+'&uuid='+uuid+'&user_id='+user+'&item_id='+options.id;
       params += listQuery;
 
       return makeRequest(url, 'POST', params);
